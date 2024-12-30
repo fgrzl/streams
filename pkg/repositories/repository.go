@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/fgrzl/woolf/pkg/models"
-	"github.com/fgrzl/woolf/pkg/stores"
-	"github.com/fgrzl/woolf/pkg/util"
+	"github.com/fgrzl/streams/pkg/models"
+	"github.com/fgrzl/streams/pkg/stores"
+	"github.com/fgrzl/streams/pkg/util"
 
 	"google.golang.org/protobuf/proto"
 )

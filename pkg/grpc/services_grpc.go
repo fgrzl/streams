@@ -9,10 +9,10 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/fgrzl/woolf/pkg/enumerators"
-	"github.com/fgrzl/woolf/pkg/models"
-	"github.com/fgrzl/woolf/pkg/services"
-	"github.com/fgrzl/woolf/pkg/util"
+	"github.com/fgrzl/streams/pkg/enumerators"
+	"github.com/fgrzl/streams/pkg/models"
+	"github.com/fgrzl/streams/pkg/services"
+	"github.com/fgrzl/streams/pkg/util"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"

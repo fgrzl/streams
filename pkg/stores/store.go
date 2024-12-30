@@ -3,8 +3,8 @@ package stores
 import (
 	"context"
 
-	"github.com/fgrzl/woolf/pkg/enumerators"
-	"github.com/fgrzl/woolf/pkg/models"
+	"github.com/fgrzl/streams/pkg/enumerators"
+	"github.com/fgrzl/streams/pkg/models"
 )
 
 var stores = make(map[string]func() StreamStore)

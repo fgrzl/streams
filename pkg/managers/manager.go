@@ -4,9 +4,9 @@ import (
 	"context"
 	"sync"
 
-	"github.com/fgrzl/woolf/pkg/repositories"
-	"github.com/fgrzl/woolf/pkg/stores"
-	"github.com/fgrzl/woolf/pkg/util"
+	"github.com/fgrzl/streams/pkg/repositories"
+	"github.com/fgrzl/streams/pkg/stores"
+	"github.com/fgrzl/streams/pkg/util"
 )
 
 // The manager brokers access to our stores and providers

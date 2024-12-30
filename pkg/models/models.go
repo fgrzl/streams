@@ -1,6 +1,6 @@
 package models
 
-import "github.com/fgrzl/woolf/pkg/enumerators"
+import "github.com/fgrzl/streams/pkg/enumerators"
 
 // Arguments for GetSpaces operation
 type GetSpacesArgs struct {

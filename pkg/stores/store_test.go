@@ -8,11 +8,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fgrzl/woolf/pkg/config"
-	"github.com/fgrzl/woolf/pkg/enumerators"
-	"github.com/fgrzl/woolf/pkg/models"
-	"github.com/fgrzl/woolf/pkg/stores"
-	"github.com/fgrzl/woolf/test"
+	"github.com/fgrzl/streams/pkg/config"
+	"github.com/fgrzl/streams/pkg/enumerators"
+	"github.com/fgrzl/streams/pkg/models"
+	"github.com/fgrzl/streams/pkg/stores"
+	"github.com/fgrzl/streams/test"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"

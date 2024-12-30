@@ -8,7 +8,7 @@ package grpc
 
 import (
 	context "context"
-	models "github.com/fgrzl/woolf/pkg/models"
+	models "github.com/fgrzl/streams/pkg/models"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"

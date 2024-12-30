@@ -11,10 +11,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/fgrzl/woolf/pkg/config"
-	"github.com/fgrzl/woolf/pkg/enumerators"
-	"github.com/fgrzl/woolf/pkg/models"
-	"github.com/fgrzl/woolf/pkg/serializers"
+	"github.com/fgrzl/streams/pkg/config"
+	"github.com/fgrzl/streams/pkg/enumerators"
+	"github.com/fgrzl/streams/pkg/models"
+	"github.com/fgrzl/streams/pkg/serializers"
 
 	"google.golang.org/protobuf/proto"
 )

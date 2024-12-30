@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/fgrzl/woolf/pkg/config"
+	"github.com/fgrzl/streams/pkg/config"
 )
 
 var (
