@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package woolf;
+
+import "models.proto";  
+
+// PartitionServices is the service definition for the stream-related operations.
+service Woolf {
+
+  rpc CreatePartition (CreatePartitionRequest) returns (StatusResponse);
+
+  rpc GetStatus (GetStatusRequest) returns (StatusResponse);
+
+  // Get the spaces
+  rpc GetSpaces(GetSpacesRequest) returns (stream SpaceDescriptor);
+
+  // Get the streams
+  rpc GetPartitions(GetPartitionsRequest) returns (stream PartitionDescriptor);
+
+  // Produce entries 
+  rpc Produce (stream Entry) returns (stream PageDescriptor);
+
+  // Consume entries in a space. 
+  rpc ConsumeSpace (ConsumeSpaceRequest) returns (stream EntryEnvelope);
+
+  // Consume entries in a stream
+  rpc ConsumePartition (ConsumePartitionRequest) returns (stream EntryEnvelope);
+
+  // Peek at the last entry in a stream
+  rpc Peek (PeekRequest) returns (EntryEnvelope); 
+
+  // Merge pages from a stream into the next tier
+  rpc Merge (MergeRequest) returns (stream PageDescriptor);
+
+  // Prune obsolete pages from a tier
+  rpc Prune (PruneRequest) returns (stream PageDescriptor);
+
+  // Rebuild the manifest for a tier
+  rpc Rebuild (RebuildRequest) returns (stream RebuildResponse);
+}

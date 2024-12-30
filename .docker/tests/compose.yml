@@ -1,0 +1,23 @@
+services:
+
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    container_name: woolf-azurite
+    hostname: azurite
+    description: test infrastructure for azure blob storage
+    ports:
+      - "10000:10000"
+    #command: "azurite --oauth basic -l /data --cert /certs/127.0.0.1.pem --key /certs/127.0.0.1-key.pem --blobHost 0.0.0.0"
+    command: "azurite --oauth basic -l /data --blobHost 0.0.0.0"
+    # volumes:
+    #   - ./certs:/certs
+
+  minio:
+    image: minio/minio
+    container_name: woolf-minio
+    hostname: minio
+    description: test infrastructure for s3
+    command: minio server ./data --console-address ":9001"
+    ports:
+      - 9000:9000
+      - 9001:9001

@@ -1,0 +1,44 @@
+services:
+
+  woolf:
+    image: woolf.server:local
+    build:
+      context: ../../
+      dockerfile: ./.docker/server/Dockerfile
+    deploy:
+      replicas: 3
+    # ports:
+    #   - "9180:9180"
+    #   - "9181:9181"
+    volumes:
+      - woolf:/data
+
+  # datadog-agent:
+  #   image: "datadog/agent:latest"
+  #   environment:
+  #     - DD_API_KEY=${DD_API_KEY}
+  #     - DD_SITE=datadoghq.com
+  #     - DD_LOGS_ENABLED=true
+  #     - DD_APM_ENABLED=true
+  #     - DD_PROCESS_AGENT_ENABLED=true
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock # Required for Docker container monitoring
+  #   # ports:
+  #   #   - "8125:8125/udp"  # DogStatsD port (optional)
+  #   #   - "5000:5000"      # Port for APM (optional)
+  #   restart: always
+
+  proxy:
+    image: nginx:latest
+    ports:
+      - "9180:9180"
+      - "9181:9181"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    restart: unless-stopped
+    depends_on:
+      - woolf
+    command: [ "/bin/bash", "-c", "nginx -g 'daemon off;'" ]
+
+volumes:
+  woolf:
