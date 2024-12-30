@@ -5,8 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strconv"
-	"strings"
 	"sync"
 
 	"github.com/fgrzl/woolf/pkg/config"
@@ -660,12 +658,6 @@ func (s *serviceImpl) Prune(ctx context.Context, args models.PruneArgs) enumerat
 
 func (s *serviceImpl) Rebuild(ctx context.Context, args models.RebuildArgs) enumerators.Enumerator[*models.RebuildResponse] {
 
-	// guard against multiple rebuild operations runing concurrently
-	rebuildID, loaded := s.processingLocks.LoadOrStore(args, uuid.New())
-	if loaded {
-		return enumerators.Empty[*models.PageDescriptor]()
-	}
-
 	// repo := s.manager.GetManifestRepository(args.Tenant, args.Space, args.Partition, args.Tier)
 	// store := s.manager.GetStore(tier0)
 	// currentManifiest, err := repo.GetManifest()
@@ -678,13 +670,7 @@ func (s *serviceImpl) Rebuild(ctx context.Context, args models.RebuildArgs) enum
 	// 	, func() {
 	// 	s.processingLocks.CompareAndDelete(args, rebuildID)
 	// })
-
-}
-
-func (s *serviceImpl) processingLock(name string, tenant string, space string, partition string, tier int32) (uuid.UUID, error) {
-
-	key := strings.Join(name, tenant, space, partition, strconv.FormatInt(tier), ':')
-	return s.processingLocks.LoadOrStore(args, uuid.New())
+	return enumerators.Error[*models.RebuildResponse](errors.New("not implemented"))
 }
 
 func (s *serviceImpl) backgroundConsumer(ctx context.Context, options *ServiceOptions, ready chan<- any) {
@@ -704,8 +690,9 @@ func (s *serviceImpl) backgroundConsumer(ctx context.Context, options *ServiceOp
 			// Handle message based on type
 			switch event := msg.(type) {
 			case PageWritten:
-				// Merge operation
+
 				if options.EnableBackgroundMerge {
+					// Merge operation
 					merge := s.Merge(ctx, models.MergeArgs{
 						Tenant:    event.Tenant,
 						Space:     event.Space,
@@ -718,19 +705,18 @@ func (s *serviceImpl) backgroundConsumer(ctx context.Context, options *ServiceOp
 					}
 				}
 
-				// // Prune operation
-				// prune := s.Prune(ctx, models.PruneArgs{
-				// 	Tenant:    event.Tenant,
-				// 	Space:     event.Space,
-				// 	Partition: event.Partition,
-				// 	Tier:      event.Tier,
-				// })
-				// for prune.MoveNext() {
-				// 	// handle error
-				// }
-			default:
-				// Handle unexpected message types, if needed
-				//s.logger.Warnf("Unhandled message type: %T", event)
+				if options.EnableBackgroundPrune {
+					// Prune operation
+					prune := s.Prune(ctx, models.PruneArgs{
+						Tenant:    event.Tenant,
+						Space:     event.Space,
+						Partition: event.Partition,
+						Tier:      event.Tier,
+					})
+					for prune.MoveNext() {
+						// handle error
+					}
+				}
 			}
 		}
 	}
