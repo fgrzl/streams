@@ -1,0 +1,243 @@
+syntax = "proto3";
+
+package woolf;
+
+// Descriptor for a space
+message SpaceDescriptor {
+  // The tenant owning the space
+  string tenant = 1;
+
+  // The name of the space
+  string space = 2;
+}
+
+// Descriptor for a partition
+message PartitionDescriptor {
+  // The tenant owning the partition
+  string tenant = 1;
+
+  // The name of the space containing the partition
+  string space = 2;
+
+  // The name of the partition
+  string partition = 3;
+}
+
+// Descriptor for a tier within a partition
+message TierDescriptor {
+  // The tenant owning the tier
+  string tenant = 1;
+
+  // The name of the space containing the tier
+  string space = 2;
+
+  // The name of the partition containing the tier
+  string partition = 3;
+
+  // The tier level
+  int32 tier = 4;
+}
+
+// Descriptor for a page within a partition/tier
+message PageDescriptor {
+  // The tenant owning the page
+  string tenant = 1;
+
+  // The name of the space containing the page
+  string space = 2;
+
+  // The name of the partition containing the page
+  string partition = 3;
+
+  // The tier containing the page
+  int32 tier = 4;
+
+  // The number of the page
+  int32 number = 5;
+
+  // The sequence number of the first entry in the page
+  uint64 first_sequence = 6;
+
+  // The timestamp of the first entry in the page
+  int64 first_timestamp = 7;
+
+  // The sequence number of the last entry in the page
+  uint64 last_sequence = 8;
+
+  // The timestamp of the last entry in the page
+  int64 last_timestamp = 9;
+
+  // The number of entries in the page
+  int32 count = 10;
+
+  // The size of the page
+  int64 size = 11;
+}
+
+// A message representing an entry in the system
+message Entry {
+  // The logical sequence number of the entry
+  uint64 sequence = 1;
+
+  // The monotonic timestamp of the entry
+  int64 timestamp = 2;
+
+  // The unique entry ID, used for idempotency (16 bytes required)
+  bytes entry_id = 3;
+
+  // The correlation ID, assigned if not provided (16 bytes required)
+  bytes correlation_id = 4;
+
+  // The causation ID, assigned if not provided (16 bytes required)
+  bytes causation_id = 5;
+
+  // The payload of the entry
+  bytes payload = 6;
+
+  // Additional metadata for the entry (optional)
+  map<string, string> metadata = 7;
+}
+
+// Offset structure used for tracking position in a stream
+message Offset {
+  // The sequence number for the offset
+  uint64 sequence = 1;
+
+  // The timestamp for the offset
+  int64 timestamp = 2;
+}
+
+// Envelope that includes a partition descriptor and an entry
+message EntryEnvelope {
+  // The descriptor of the partition containing the entry
+  PartitionDescriptor partition_descriptor = 1;
+
+  // The entry data
+  Entry entry = 2;
+}
+
+// A page containing multiple entries and an index for efficient access
+message Page {
+  // The page number
+  int32 number = 1;
+
+  // The sequence number of the first entry in the page
+  uint64 first_sequence = 2;
+
+  // The timestamp of the first entry in the page
+  int64 first_timestamp = 3;
+
+  // The sequence number of the last entry in the page
+  uint64 last_sequence = 4;
+
+  // The timestamp of the last entry in the page
+  int64 last_timestamp = 5;
+
+  // The number of entries in the page
+  int32 count = 6;
+
+  // The size of the page
+  int64 size = 7;
+
+  // A sparse index of sequences to positions in the IO stream
+  repeated PageIndexEntry index = 8;
+}
+
+// Index entry for efficient sequence lookup in a page
+message PageIndexEntry {
+  // The sequence number for this index entry
+  uint64 sequence = 1;
+
+  // The position of the sequence in the stream
+  int64 position = 2;
+}
+
+// Manifest for managing multiple pages
+message Manifest {
+  // The list of pages in the manifest
+  repeated Page pages = 1;
+
+  // The last page in the manifest
+  Page last_page = 2;
+}
+
+// Request to get spaces
+message GetSpacesRequest {}
+
+// Request to get partitions
+message GetPartitionsRequest {}
+
+// Request to get the status
+message GetStatusRequest {}
+
+// Response with status message
+message StatusResponse {
+  // The status message
+  string message = 1;
+}
+
+// Request to create a partition
+message CreatePartitionRequest {}
+
+// Request to peek at entries in a space
+message PeekRequest {}
+
+// Request to consume entries from a space
+message ConsumeSpaceRequest {
+  // Offsets for each stream in the space
+  map<string, Offset> offsets = 1;
+
+  // The minimum timestamp inclusive
+  int64 min_timestamp = 2;
+
+  // The maximum timestamp inclusive
+  int64 max_timestamp = 4;
+}
+
+// Request to consume entries from a partition
+message ConsumePartitionRequest {
+  // The partition to consume
+  string partition = 1;
+
+  // The minimum sequence exclusive (optional)
+  uint64 min_sequence = 2;
+
+  // The minimum timestamp inclusive (optional)
+  int64 min_timestamp = 3;
+
+  // The maximum sequence inclusive (optional)
+  uint64 max_sequence = 4;
+
+  // The maximum timestamp inclusive (optional)
+  int64 max_timestamp = 5;
+}
+
+// Request to merge a partition at a specific tier
+message MergeRequest {
+  // The tier to merge
+  int32 tier = 1;
+}
+
+// Request to rebuild a partition at a specific tier
+message RebuildRequest {
+  // The tier to rebuild
+  int32 tier = 1;
+}
+
+// Response for a rebuild operation
+message RebuildResponse {
+  // The partition being rebuilt
+  string partition = 1;
+
+  // The tier being rebuilt
+  int32 tier = 2;
+
+  // The number of pages rebuilt
+  int32 page_count = 3;
+}
+
+// Request to prune a partition at a specific tier
+message PruneRequest {
+  // The tier to prune
+  int32 tier = 1;
+}
