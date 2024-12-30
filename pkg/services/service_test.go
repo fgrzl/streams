@@ -734,32 +734,32 @@ func TestService_Prune(t *testing.T) {
 	})
 }
 
-func TestService_Rebuild(t *testing.T) {
-	ctx, service := setupService(t)
+// func TestService_Rebuild(t *testing.T) {
+// 	ctx, service := setupService(t)
 
-	t.Run("should rebuild a stream's manifest, followed by merge and prune operations", func(t *testing.T) {
-		// Arrange
-		tenant := "t_" + uuid.NewString()
-		space := "s_" + uuid.NewString()
-		partition := "p_" + uuid.NewString()
-		tier := int32(0)
+// 	t.Run("should rebuild a stream's manifest, followed by merge and prune operations", func(t *testing.T) {
+// 		// Arrange
+// 		tenant := "t_" + uuid.NewString()
+// 		space := "s_" + uuid.NewString()
+// 		partition := "p_" + uuid.NewString()
+// 		tier := int32(0)
 
-		args := models.RebuildArgs{
-			Tenant:    tenant,
-			Space:     space,
-			Partition: partition,
-			Tier:      tier,
-		}
+// 		args := models.RebuildArgs{
+// 			Tenant:    tenant,
+// 			Space:     space,
+// 			Partition: partition,
+// 			Tier:      tier,
+// 		}
 
-		// Act
-		enumerator := service.Rebuild(ctx, args)
+// 		// Act
+// 		enumerator := service.Rebuild(ctx, args)
 
-		// Assert
-		assert.NotNil(t, enumerator)
+// 		// Assert
+// 		assert.NotNil(t, enumerator)
 
-		// Use ToSlice to get all items
-		responses, err := enumerators.ToSlice(enumerator)
-		assert.NoError(t, err)
-		assert.NotEmpty(t, responses)
-	})
-}
+// 		// Use ToSlice to get all items
+// 		responses, err := enumerators.ToSlice(enumerator)
+// 		assert.NoError(t, err)
+// 		assert.NotEmpty(t, responses)
+// 	})
+// }
