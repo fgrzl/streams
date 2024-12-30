@@ -4,8 +4,8 @@ import (
 	"encoding/binary"
 	"io"
 
-	"github.com/fgrzl/woolf/pkg/enumerators"
-	"github.com/fgrzl/woolf/pkg/models"
+	"github.com/fgrzl/streams/pkg/enumerators"
+	"github.com/fgrzl/streams/pkg/models"
 
 	"google.golang.org/protobuf/proto"
 )

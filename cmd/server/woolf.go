@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/fgrzl/woolf/pkg/grpc"
+	"github.com/fgrzl/streams/pkg/grpc"
 )
 
 func main() {

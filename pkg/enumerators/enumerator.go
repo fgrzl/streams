@@ -1,7 +1,7 @@
 package enumerators
 
 import (
-	"github.com/fgrzl/woolf/pkg/util"
+	"github.com/fgrzl/streams/pkg/util"
 )
 
 // Enumerator interface for generic iteration.

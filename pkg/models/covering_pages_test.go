@@ -3,8 +3,8 @@ package models_test
 import (
 	"testing"
 
-	"github.com/fgrzl/woolf/pkg/models"
-	"github.com/fgrzl/woolf/pkg/util"
+	"github.com/fgrzl/streams/pkg/models"
+	"github.com/fgrzl/streams/pkg/util"
 	"github.com/stretchr/testify/assert"
 )
 

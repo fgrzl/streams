@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/fgrzl/woolf/pkg/enumerators"
+	"github.com/fgrzl/streams/pkg/enumerators"
 	"github.com/stretchr/testify/assert"
 )
 

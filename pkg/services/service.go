@@ -3,9 +3,9 @@ package services
 import (
 	"context"
 
-	"github.com/fgrzl/woolf/pkg/enumerators"
-	"github.com/fgrzl/woolf/pkg/models"
-	"github.com/fgrzl/woolf/pkg/util"
+	"github.com/fgrzl/streams/pkg/enumerators"
+	"github.com/fgrzl/streams/pkg/models"
+	"github.com/fgrzl/streams/pkg/util"
 )
 
 type Service interface {

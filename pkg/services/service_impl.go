@@ -7,12 +7,12 @@ import (
 	"math"
 	"sync"
 
-	"github.com/fgrzl/woolf/pkg/config"
-	"github.com/fgrzl/woolf/pkg/enumerators"
-	"github.com/fgrzl/woolf/pkg/managers"
-	"github.com/fgrzl/woolf/pkg/models"
-	"github.com/fgrzl/woolf/pkg/stores"
-	"github.com/fgrzl/woolf/pkg/util"
+	"github.com/fgrzl/streams/pkg/config"
+	"github.com/fgrzl/streams/pkg/enumerators"
+	"github.com/fgrzl/streams/pkg/managers"
+	"github.com/fgrzl/streams/pkg/models"
+	"github.com/fgrzl/streams/pkg/stores"
+	"github.com/fgrzl/streams/pkg/util"
 	"github.com/google/uuid"
 )
 

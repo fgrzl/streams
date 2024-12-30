@@ -8,9 +8,9 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 
-	"github.com/fgrzl/woolf/pkg/enumerators"
-	woolfgrpc "github.com/fgrzl/woolf/pkg/grpc"
-	"github.com/fgrzl/woolf/pkg/models"
+	"github.com/fgrzl/streams/pkg/enumerators"
+	woolfgrpc "github.com/fgrzl/streams/pkg/grpc"
+	"github.com/fgrzl/streams/pkg/models"
 )
 
 func NewGrpcClient(target string) WoolfClient {

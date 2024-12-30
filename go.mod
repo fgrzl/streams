@@ -1,4 +1,4 @@
-module github.com/fgrzl/woolf
+module github.com/fgrzl/streams
 
 go 1.23.2
 
