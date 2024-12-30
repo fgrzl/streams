@@ -51,5 +51,5 @@ jobs:
         --file ./.docker/server/Dockerfile \
         --platform linux/amd64,linux/arm64 \
         --build-arg=SEMVER=${{ env.GitVersion_SemVer }} \
-        --tag ghcr.io/fgrzl/woolf:${{ env.GitVersion_SemVer }} \
+        --tag ghcr.io/fgrzl/streams:${{ env.GitVersion_SemVer }} \
         --push
