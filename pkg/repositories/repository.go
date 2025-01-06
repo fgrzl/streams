@@ -117,7 +117,7 @@ func (m *manifestRepository) backgroundConsumer(ctx context.Context) {
 			switch obj := msg.(type) {
 			case *createManifest:
 				defer close(obj.ResponseCh)
-				args := models.ReadManifestArgs{
+				args := &models.ReadManifestArgs{
 					Tenant:    m.key.Tenant,
 					Space:     m.key.Space,
 					Partition: m.key.Partition,
@@ -130,7 +130,7 @@ func (m *manifestRepository) backgroundConsumer(ctx context.Context) {
 				}
 
 				if wrapper != nil && wrapper.Manifest == nil {
-					_, err := m.store.WriteManifest(ctx, models.WriteManifestArgs{
+					_, err := m.store.WriteManifest(ctx, &models.WriteManifestArgs{
 						Tenant:    m.key.Tenant,
 						Space:     m.key.Space,
 						Partition: m.key.Partition,
@@ -147,7 +147,7 @@ func (m *manifestRepository) backgroundConsumer(ctx context.Context) {
 			case *getManifest:
 				defer close(obj.ResponseCh)
 				if m.manifest == nil || m.tag == nil {
-					args := models.ReadManifestArgs{
+					args := &models.ReadManifestArgs{
 						Tenant:    m.key.Tenant,
 						Space:     m.key.Space,
 						Partition: m.key.Partition,
@@ -167,7 +167,7 @@ func (m *manifestRepository) backgroundConsumer(ctx context.Context) {
 				m.manifest.Pages = append(m.manifest.Pages, obj.Page)
 				m.manifest.LastPage = obj.Page
 
-				args := models.WriteManifestArgs{
+				args := &models.WriteManifestArgs{
 					Tenant:    m.key.Tenant,
 					Space:     m.key.Space,
 					Partition: m.key.Partition,
@@ -191,7 +191,7 @@ func (m *manifestRepository) backgroundConsumer(ctx context.Context) {
 				}
 				m.manifest.Pages = filtered
 
-				args := models.WriteManifestArgs{
+				args := &models.WriteManifestArgs{
 					Tenant:    m.key.Tenant,
 					Space:     m.key.Space,
 					Partition: m.key.Partition,

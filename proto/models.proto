@@ -241,3 +241,161 @@ message PruneRequest {
   // The tier to prune
   int32 tier = 1;
 }
+
+
+// Arguments for GetSpaces operation
+message GetSpacesArgs {
+    string tenant = 1;
+}
+
+// Arguments for GetPartitions operation
+message GetPartitionsArgs {
+    string tenant = 1;
+    string space = 2;
+}
+
+// Arguments for GetPartition operation
+message GetPartitionArgs {
+    string tenant = 1;
+    string space = 2;
+    string partition = 3;
+}
+
+// Arguments for CreatePartition operation
+message CreatePartitionArgs {
+    string tenant = 1;
+    string space = 2;
+    string partition = 3;
+}
+
+// Arguments for CreateTier operation
+message CreateTierArgs {
+    string tenant = 1;
+    string space = 2;
+    string partition = 3;
+    int32 tier = 4;
+}
+
+// Arguments for Produce operation
+message ProduceArgs {
+    string tenant = 1;
+    string space = 2;
+    string partition = 3;
+    string strategy = 4;
+    repeated Entry entries = 5;
+}
+
+// Arguments for Merge operation
+message MergeArgs {
+    string tenant = 1;
+    string space = 2;
+    string partition = 3;
+    int32 tier = 4;
+}
+
+// Arguments for Prune operation
+message PruneArgs {
+    string tenant = 1;
+    string space = 2;
+    string partition = 3;
+    int32 tier = 4;
+}
+
+// Arguments for Rebuild operation
+message RebuildArgs {
+    string tenant = 1;
+    string space = 2;
+    string partition = 3;
+    int32 tier = 4;
+}
+
+// Arguments for GetStatus operation
+message GetStatusArgs {
+    string tenant = 1;
+    string space = 2;
+    string partition = 3;
+}
+
+// Arguments for ConsumeSpace operation
+message ConsumeSpaceArgs {
+    string tenant = 1;
+    string space = 2;
+    map<string, Offset> offsets = 3;
+    int64 min_timestamp = 4;
+    uint64 max_sequence = 5;
+    int64 max_timestamp = 6;
+}
+
+// Arguments for ConsumePartition operation
+message ConsumePartitionArgs {
+    string tenant = 1;
+    string space = 2;
+    string partition = 3;
+    uint64 min_sequence = 4;
+    int64 min_timestamp = 5;
+    uint64 max_sequence = 6;
+    int64 max_timestamp = 7;
+}
+
+// Arguments for Peek operation
+message PeekArgs {
+    string tenant = 1;
+    string space = 2;
+    string partition = 3;
+}
+
+// Arguments for ReadPage operation
+message ReadPageArgs {
+    string tenant = 1;
+    string space = 2;
+    string partition = 3;
+    int32 tier = 4;
+    int32 number = 5;
+    int64 position = 6;
+}
+
+// Arguments for DeletePage operation
+message DeletePageArgs {
+    string tenant = 1;
+    string space = 2;
+    string partition = 3;
+    int32 tier = 4;
+    int32 number = 5;
+}
+
+// Arguments for GetPages operation
+message GetPagesArgs {
+    string tenant = 1;
+    string space = 2;
+    string partition = 3;
+    int32 tier = 4;
+}
+
+// Arguments for WritePage operation
+message WritePageArgs {
+    string tenant = 1;
+    string space = 2;
+    string partition = 3;
+    int32 tier = 4;
+    int32 number = 5;
+    int64 min_page_size = 6;
+    int64 max_page_size = 7;
+    repeated Entry entries = 8;
+}
+
+// Arguments for DeleteSpace operation
+message DeleteSpaceArgs {
+    string tenant = 1;
+    string space = 2;
+    string partition = 3;
+}
+
+// Arguments for DeletePartition operation
+message DeletePartitionArgs {
+    string tenant = 1;
+    string space = 2;
+    string partition = 3;
+}
+
+
+

@@ -107,7 +107,7 @@ func (s *implementedWolfServer) CreatePartition(ctx context.Context, req *models
 		return nil, err
 	}
 
-	return s.service.CreatePartition(ctx, models.CreatePartitionArgs{
+	return s.service.CreatePartition(ctx, &models.CreatePartitionArgs{
 		Tenant:    descriptor.Tenant,
 		Space:     descriptor.Space,
 		Partition: descriptor.Partition,
@@ -121,7 +121,7 @@ func (s *implementedWolfServer) GetStatus(ctx context.Context, req *models.GetSt
 		return nil, err
 	}
 
-	return s.service.GetStatus(ctx, models.GetStatusArgs{
+	return s.service.GetStatus(ctx, &models.GetStatusArgs{
 		Tenant:    descriptor.Tenant,
 		Space:     descriptor.Space,
 		Partition: descriptor.Partition,
@@ -138,14 +138,13 @@ func (s *implementedWolfServer) Produce(stream grpc.BidiStreamingServer[models.E
 	entries := enumerators.NewBidiStreamingServerEnumerator(stream)
 	defer entries.Dispose()
 
-	args := models.ProduceArgs{
+	args := &models.ProduceArgs{
 		Tenant:    headers.Tenant,
 		Space:     headers.Space,
 		Partition: headers.Partition,
-		Entries:   entries,
 	}
 
-	responses := s.service.Produce(stream.Context(), args)
+	responses := s.service.Produce(stream.Context(), args, entries)
 	defer responses.Dispose()
 	for responses.MoveNext() {
 		r, err := responses.Current()
@@ -169,7 +168,7 @@ func (s *implementedWolfServer) Peek(ctx context.Context, req *models.PeekReques
 		return nil, err
 	}
 
-	args := models.PeekArgs{
+	args := &models.PeekArgs{
 		Tenant:    headers.Tenant,
 		Space:     headers.Space,
 		Partition: headers.Partition,
@@ -185,7 +184,7 @@ func (s *implementedWolfServer) ConsumeSpace(req *models.ConsumeSpaceRequest, st
 		return err
 	}
 
-	args := models.ConsumeSpaceArgs{
+	args := &models.ConsumeSpaceArgs{
 		Tenant:       headers.Tenant,
 		Space:        headers.Space,
 		Offsets:      req.Offsets,
@@ -202,7 +201,7 @@ func (s *implementedWolfServer) ConsumePartition(req *models.ConsumePartitionReq
 		return err
 	}
 
-	args := models.ConsumePartitionArgs{
+	args := &models.ConsumePartitionArgs{
 		Tenant:       headers.Tenant,
 		Space:        headers.Space,
 		MinSequence:  req.MinSequence,
@@ -221,7 +220,7 @@ func (s *implementedWolfServer) Merge(req *models.MergeRequest, stream grpc.Serv
 		return err
 	}
 
-	args := models.MergeArgs{
+	args := &models.MergeArgs{
 		Tenant:    headers.Tenant,
 		Space:     headers.Space,
 		Partition: headers.Partition,
@@ -238,7 +237,7 @@ func (s *implementedWolfServer) Prune(req *models.PruneRequest, stream grpc.Serv
 		return err
 	}
 
-	args := models.PruneArgs{
+	args := &models.PruneArgs{
 		Tenant:    headers.Tenant,
 		Space:     headers.Space,
 		Partition: headers.Partition,
@@ -255,7 +254,7 @@ func (s *implementedWolfServer) Rebuild(req *models.RebuildRequest, stream grpc.
 		return err
 	}
 
-	args := models.RebuildArgs{
+	args := &models.RebuildArgs{
 		Tenant:    headers.Tenant,
 		Space:     headers.Space,
 		Partition: headers.Partition,

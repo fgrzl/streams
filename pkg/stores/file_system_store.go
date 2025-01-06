@@ -35,12 +35,12 @@ func NewFileSystemStore() StreamStore {
 	return &FileSystemStreamStore{path: config.GetFileSystemPath()}
 }
 
-func (fs *FileSystemStreamStore) CreateTier(ctx context.Context, args models.CreateTierArgs) error {
+func (fs *FileSystemStreamStore) CreateTier(ctx context.Context, args *models.CreateTierArgs) error {
 	tierPath := fs.getTierDirectoryPath(args.Tenant, args.Space, args.Partition, args.Tier)
 	return os.MkdirAll(tierPath, 0755)
 }
 
-func (fs *FileSystemStreamStore) GetSpaces(ctx context.Context, args models.GetSpacesArgs) enumerators.Enumerator[string] {
+func (fs *FileSystemStreamStore) GetSpaces(ctx context.Context, args *models.GetSpacesArgs) enumerators.Enumerator[string] {
 	path := fs.getTenantDirectoryPath(args.Tenant)
 	buf, err := os.ReadDir(path)
 	if err != nil {
@@ -59,7 +59,7 @@ func (fs *FileSystemStreamStore) GetSpaces(ctx context.Context, args models.GetS
 		})
 }
 
-func (fs *FileSystemStreamStore) GetPartitions(ctx context.Context, args models.GetPartitionsArgs) enumerators.Enumerator[string] {
+func (fs *FileSystemStreamStore) GetPartitions(ctx context.Context, args *models.GetPartitionsArgs) enumerators.Enumerator[string] {
 	path := fs.getSpaceDirectoryPath(args.Tenant, args.Space)
 	buf, err := os.ReadDir(path)
 	if err != nil {
@@ -78,7 +78,7 @@ func (fs *FileSystemStreamStore) GetPartitions(ctx context.Context, args models.
 		})
 }
 
-func (fs *FileSystemStreamStore) GetPages(ctx context.Context, args models.GetPagesArgs) enumerators.Enumerator[int32] {
+func (fs *FileSystemStreamStore) GetPages(ctx context.Context, args *models.GetPagesArgs) enumerators.Enumerator[int32] {
 	// Get the directory path for the tier
 	dir := fs.getTierDirectoryPath(args.Tenant, args.Space, args.Partition, args.Tier)
 	entries, err := os.ReadDir(dir)
@@ -122,7 +122,7 @@ func (fs *FileSystemStreamStore) GetPages(ctx context.Context, args models.GetPa
 }
 
 // DeletePartition deletes the entire stream directory
-func (fs *FileSystemStreamStore) DeleteSpace(ctx context.Context, args models.DeleteSpaceArgs) error {
+func (fs *FileSystemStreamStore) DeleteSpace(ctx context.Context, args *models.DeleteSpaceArgs) error {
 
 	path := fs.getSpaceDirectoryPath(args.Tenant, args.Space)
 	err := os.RemoveAll(path)
@@ -133,7 +133,7 @@ func (fs *FileSystemStreamStore) DeleteSpace(ctx context.Context, args models.De
 }
 
 // DeletePartition deletes the entire stream directory
-func (fs *FileSystemStreamStore) DeletePartition(ctx context.Context, args models.DeletePartitionArgs) error {
+func (fs *FileSystemStreamStore) DeletePartition(ctx context.Context, args *models.DeletePartitionArgs) error {
 
 	path := fs.getPartitionDirectoryPath(args.Tenant, args.Space, args.Partition)
 	err := os.RemoveAll(path)
@@ -144,7 +144,7 @@ func (fs *FileSystemStreamStore) DeletePartition(ctx context.Context, args model
 }
 
 // WriteManifest writes the manifest for a stream
-func (fs *FileSystemStreamStore) WriteManifest(ctx context.Context, args models.WriteManifestArgs) (models.ConcurrencyTag, error) {
+func (fs *FileSystemStreamStore) WriteManifest(ctx context.Context, args *models.WriteManifestArgs) (models.ConcurrencyTag, error) {
 
 	tierPath := fs.getTierDirectoryPath(args.Tenant, args.Space, args.Partition, args.Tier)
 	fileName := fs.getManifestFilePath(tierPath)
@@ -198,7 +198,7 @@ func (fs *FileSystemStreamStore) WriteManifest(ctx context.Context, args models.
 }
 
 // ReadManifest gets the manifest for a stream
-func (fs *FileSystemStreamStore) ReadManifest(ctx context.Context, args models.ReadManifestArgs) (*models.ManifestWrapper, error) {
+func (fs *FileSystemStreamStore) ReadManifest(ctx context.Context, args *models.ReadManifestArgs) (*models.ManifestWrapper, error) {
 	// Initialize the return value
 	wrapper := &models.ManifestWrapper{}
 
@@ -245,7 +245,7 @@ func (fs *FileSystemStreamStore) ReadManifest(ctx context.Context, args models.R
 }
 
 // WriteRecords writes records to a page file
-func (fs *FileSystemStreamStore) WritePage(ctx context.Context, args models.WritePageArgs) (*models.Page, error) {
+func (fs *FileSystemStreamStore) WritePage(ctx context.Context, args *models.WritePageArgs, entries enumerators.Enumerator[*models.Entry]) (*models.Page, error) {
 	// Determine the file paths
 	tierPath := fs.getTierDirectoryPath(args.Tenant, args.Space, args.Partition, args.Tier)
 	fileName := fs.getPageFilePath(tierPath, args.Number)
@@ -264,7 +264,7 @@ func (fs *FileSystemStreamStore) WritePage(ctx context.Context, args models.Writ
 	}()
 
 	// Serialize the channel to the temp file
-	page, err := serializers.Write(args.Entries, tmpFile)
+	page, err := serializers.Write(entries, tmpFile)
 	if err != nil {
 		return nil, err
 	}
@@ -303,7 +303,7 @@ func (fs *FileSystemStreamStore) WritePage(ctx context.Context, args models.Writ
 	return page, nil
 }
 
-func (fs *FileSystemStreamStore) ReadPage(ctx context.Context, args models.ReadPageArgs) enumerators.Enumerator[*models.Entry] {
+func (fs *FileSystemStreamStore) ReadPage(ctx context.Context, args *models.ReadPageArgs) enumerators.Enumerator[*models.Entry] {
 
 	tierPath := fs.getTierDirectoryPath(args.Tenant, args.Space, args.Partition, args.Tier)
 	filePath := fs.getPageFilePath(tierPath, args.Number)
@@ -316,7 +316,7 @@ func (fs *FileSystemStreamStore) ReadPage(ctx context.Context, args models.ReadP
 }
 
 // DeletePage deletes a page file
-func (fs *FileSystemStreamStore) DeletePage(ctx context.Context, args models.DeletePageArgs) error {
+func (fs *FileSystemStreamStore) DeletePage(ctx context.Context, args *models.DeletePageArgs) error {
 	tierPath := fs.getTierDirectoryPath(args.Tenant, args.Space, args.Partition, args.Tier)
 	filePath := fs.getPageFilePath(tierPath, args.Number)
 	err := os.Remove(filePath)
