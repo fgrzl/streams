@@ -31,18 +31,18 @@ type grpcClient struct {
 	internal woolfgrpc.WoolfClient
 }
 
-func (g *grpcClient) CreatePartition(ctx context.Context, args models.CreatePartitionArgs) (*models.StatusResponse, error) {
+func (g *grpcClient) CreatePartition(ctx context.Context, args *models.CreatePartitionArgs) (*models.StatusResponse, error) {
 	ctx, req := mapCreatePartitionArgs(ctx, args)
 	return g.internal.CreatePartition(ctx, req)
 }
 
-func (g *grpcClient) GetStatus(ctx context.Context, args models.GetStatusArgs) (*models.StatusResponse, error) {
+func (g *grpcClient) GetStatus(ctx context.Context, args *models.GetStatusArgs) (*models.StatusResponse, error) {
 	ctx, req := mapGetStatusArgs(ctx, args)
 	return g.internal.GetStatus(ctx, req)
 }
 
 // ConsumeSpace implements Client.
-func (g *grpcClient) ConsumeSpace(ctx context.Context, args models.ConsumeSpaceArgs) enumerators.Enumerator[*models.EntryEnvelope] {
+func (g *grpcClient) ConsumeSpace(ctx context.Context, args *models.ConsumeSpaceArgs) enumerators.Enumerator[*models.EntryEnvelope] {
 	ctx, req := mapConsumeSpaceArgs(ctx, args)
 	res, err := g.internal.ConsumeSpace(ctx, req)
 	if err != nil {
@@ -51,7 +51,7 @@ func (g *grpcClient) ConsumeSpace(ctx context.Context, args models.ConsumeSpaceA
 	return enumerators.NewServerStreamingClientResponseEnumerator(res)
 }
 
-func (g *grpcClient) ConsumePartition(ctx context.Context, args models.ConsumePartitionArgs) enumerators.Enumerator[*models.EntryEnvelope] {
+func (g *grpcClient) ConsumePartition(ctx context.Context, args *models.ConsumePartitionArgs) enumerators.Enumerator[*models.EntryEnvelope] {
 	ctx, req := mapConsumePartitionArgs(ctx, args)
 	res, err := g.internal.ConsumePartition(ctx, req)
 	if err != nil {
@@ -60,7 +60,7 @@ func (g *grpcClient) ConsumePartition(ctx context.Context, args models.ConsumePa
 	return enumerators.NewServerStreamingClientResponseEnumerator(res)
 }
 
-func (g *grpcClient) GetSpaces(ctx context.Context, args models.GetSpacesArgs) enumerators.Enumerator[*models.SpaceDescriptor] {
+func (g *grpcClient) GetSpaces(ctx context.Context, args *models.GetSpacesArgs) enumerators.Enumerator[*models.SpaceDescriptor] {
 	ctx, req := mapGetSpacesArgs(ctx, args)
 	res, err := g.internal.GetSpaces(ctx, req)
 	if err != nil {
@@ -69,7 +69,7 @@ func (g *grpcClient) GetSpaces(ctx context.Context, args models.GetSpacesArgs) e
 	return enumerators.NewServerStreamingClientResponseEnumerator(res)
 }
 
-func (g *grpcClient) GetPartitions(ctx context.Context, args models.GetPartitionsArgs) enumerators.Enumerator[*models.PartitionDescriptor] {
+func (g *grpcClient) GetPartitions(ctx context.Context, args *models.GetPartitionsArgs) enumerators.Enumerator[*models.PartitionDescriptor] {
 	ctx, req := mapGetPartitionsArgs(ctx, args)
 	res, err := g.internal.GetPartitions(ctx, req)
 	if err != nil {
@@ -78,12 +78,12 @@ func (g *grpcClient) GetPartitions(ctx context.Context, args models.GetPartition
 	return enumerators.NewServerStreamingClientResponseEnumerator(res)
 }
 
-func (g *grpcClient) Peek(ctx context.Context, args models.PeekArgs) (*models.EntryEnvelope, error) {
+func (g *grpcClient) Peek(ctx context.Context, args *models.PeekArgs) (*models.EntryEnvelope, error) {
 	ctx, req := mapPeekArgs(ctx, args)
 	return g.internal.Peek(ctx, req)
 }
 
-func (g *grpcClient) Produce(ctx context.Context, args models.ProduceArgs) enumerators.Enumerator[*models.PageDescriptor] {
+func (g *grpcClient) Produce(ctx context.Context, args *models.ProduceArgs, entries enumerators.Enumerator[*models.Entry]) enumerators.Enumerator[*models.PageDescriptor] {
 	ctx = addHeaders(ctx, args.Tenant, args.Space, args.Partition)
 
 	stream, err := g.internal.Produce(ctx)
@@ -93,7 +93,6 @@ func (g *grpcClient) Produce(ctx context.Context, args models.ProduceArgs) enume
 
 	// Example to send a message
 	go func() {
-		entries := args.Entries
 		defer entries.Dispose()
 		for entries.MoveNext() {
 			entry, err := entries.Current()
@@ -111,7 +110,7 @@ func (g *grpcClient) Produce(ctx context.Context, args models.ProduceArgs) enume
 	return enumerators.NewBidiStreamingClientResponseEnumerator(stream)
 }
 
-func (g *grpcClient) Merge(ctx context.Context, args models.MergeArgs) enumerators.Enumerator[*models.PageDescriptor] {
+func (g *grpcClient) Merge(ctx context.Context, args *models.MergeArgs) enumerators.Enumerator[*models.PageDescriptor] {
 	ctx, req := mapMergeArgs(ctx, args)
 	res, err := g.internal.Merge(ctx, req)
 	if err != nil {
@@ -120,7 +119,7 @@ func (g *grpcClient) Merge(ctx context.Context, args models.MergeArgs) enumerato
 	return enumerators.NewServerStreamingClientResponseEnumerator(res)
 }
 
-func (g *grpcClient) Prune(ctx context.Context, args models.PruneArgs) enumerators.Enumerator[*models.PageDescriptor] {
+func (g *grpcClient) Prune(ctx context.Context, args *models.PruneArgs) enumerators.Enumerator[*models.PageDescriptor] {
 	ctx, req := mapPruneArgs(ctx, args)
 	res, err := g.internal.Prune(ctx, req)
 	if err != nil {
@@ -129,7 +128,7 @@ func (g *grpcClient) Prune(ctx context.Context, args models.PruneArgs) enumerato
 	return enumerators.NewServerStreamingClientResponseEnumerator(res)
 }
 
-func (g *grpcClient) Rebuild(ctx context.Context, args models.RebuildArgs) enumerators.Enumerator[*models.RebuildResponse] {
+func (g *grpcClient) Rebuild(ctx context.Context, args *models.RebuildArgs) enumerators.Enumerator[*models.RebuildResponse] {
 	ctx, req := mapRebuildArgs(ctx, args)
 	res, err := g.internal.Rebuild(ctx, req)
 	if err != nil {
@@ -158,51 +157,51 @@ func addHeaders(ctx context.Context, tenant string, space string, stream string)
 	return metadata.NewOutgoingContext(ctx, headers)
 }
 
-func mapCreatePartitionArgs(ctx context.Context, args models.CreatePartitionArgs) (context.Context, *models.CreatePartitionRequest) {
+func mapCreatePartitionArgs(ctx context.Context, args *models.CreatePartitionArgs) (context.Context, *models.CreatePartitionRequest) {
 	ctx = addHeaders(ctx, args.Tenant, args.Space, args.Partition)
 	return ctx, &models.CreatePartitionRequest{}
 }
 
-func mapGetStatusArgs(ctx context.Context, args models.GetStatusArgs) (context.Context, *models.GetStatusRequest) {
+func mapGetStatusArgs(ctx context.Context, args *models.GetStatusArgs) (context.Context, *models.GetStatusRequest) {
 	ctx = addHeaders(ctx, args.Tenant, args.Space, args.Partition)
 	return ctx, &models.GetStatusRequest{}
 }
 
-func mapGetSpacesArgs(ctx context.Context, args models.GetSpacesArgs) (context.Context, *models.GetSpacesRequest) {
+func mapGetSpacesArgs(ctx context.Context, args *models.GetSpacesArgs) (context.Context, *models.GetSpacesRequest) {
 	ctx = addHeaders(ctx, args.Tenant, "", "")
 	return ctx, &models.GetSpacesRequest{}
 }
 
-func mapGetPartitionsArgs(ctx context.Context, args models.GetPartitionsArgs) (context.Context, *models.GetPartitionsRequest) {
+func mapGetPartitionsArgs(ctx context.Context, args *models.GetPartitionsArgs) (context.Context, *models.GetPartitionsRequest) {
 	ctx = addHeaders(ctx, args.Tenant, args.Space, "")
 	return ctx, &models.GetPartitionsRequest{}
 }
 
-func mapPeekArgs(ctx context.Context, args models.PeekArgs) (context.Context, *models.PeekRequest) {
+func mapPeekArgs(ctx context.Context, args *models.PeekArgs) (context.Context, *models.PeekRequest) {
 	ctx = addHeaders(ctx, args.Tenant, args.Space, args.Partition)
 	return ctx, &models.PeekRequest{}
 }
 
-func mapMergeArgs(ctx context.Context, args models.MergeArgs) (context.Context, *models.MergeRequest) {
+func mapMergeArgs(ctx context.Context, args *models.MergeArgs) (context.Context, *models.MergeRequest) {
 	ctx = addHeaders(ctx, args.Tenant, args.Space, args.Partition)
 	return ctx, &models.MergeRequest{
 		Tier: args.Tier,
 	}
 }
 
-func mapPruneArgs(ctx context.Context, args models.PruneArgs) (context.Context, *models.PruneRequest) {
+func mapPruneArgs(ctx context.Context, args *models.PruneArgs) (context.Context, *models.PruneRequest) {
 	ctx = addHeaders(ctx, args.Tenant, args.Space, args.Partition)
 	return ctx, &models.PruneRequest{
 		Tier: args.Tier,
 	}
 }
 
-func mapRebuildArgs(ctx context.Context, args models.RebuildArgs) (context.Context, *models.RebuildRequest) {
+func mapRebuildArgs(ctx context.Context, args *models.RebuildArgs) (context.Context, *models.RebuildRequest) {
 	ctx = addHeaders(ctx, args.Tenant, args.Space, args.Partition)
 	return ctx, &models.RebuildRequest{}
 }
 
-func mapConsumeSpaceArgs(ctx context.Context, args models.ConsumeSpaceArgs) (context.Context, *models.ConsumeSpaceRequest) {
+func mapConsumeSpaceArgs(ctx context.Context, args *models.ConsumeSpaceArgs) (context.Context, *models.ConsumeSpaceRequest) {
 	ctx = addHeaders(ctx, args.Tenant, args.Space, "")
 	return ctx, &models.ConsumeSpaceRequest{
 		Offsets:      args.Offsets,
@@ -211,7 +210,7 @@ func mapConsumeSpaceArgs(ctx context.Context, args models.ConsumeSpaceArgs) (con
 	}
 }
 
-func mapConsumePartitionArgs(ctx context.Context, args models.ConsumePartitionArgs) (context.Context, *models.ConsumePartitionRequest) {
+func mapConsumePartitionArgs(ctx context.Context, args *models.ConsumePartitionArgs) (context.Context, *models.ConsumePartitionRequest) {
 	ctx = addHeaders(ctx, args.Tenant, args.Space, args.Partition)
 	return ctx, &models.ConsumePartitionRequest{
 		MinSequence:  args.MinSequence,

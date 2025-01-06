@@ -58,7 +58,7 @@ func ClientTest_CreatePartition(t *testing.T) {
 		space := "space_" + uuid.NewString()
 		stream := "partition_" + uuid.NewString()
 
-		args := models.CreatePartitionArgs{Tenant: tenant, Space: space, Partition: stream}
+		args := &models.CreatePartitionArgs{Tenant: tenant, Space: space, Partition: stream}
 
 		// Act
 		resp, err := client.CreatePartition(ctx, args)
@@ -80,7 +80,7 @@ func TestGetStatus(t *testing.T) {
 		tenant := "tenant_" + uuid.NewString()
 		space := "space_" + uuid.NewString()
 		stream := "partition_" + uuid.NewString()
-		args := models.GetStatusArgs{Tenant: tenant, Space: space, Partition: stream}
+		args := &models.GetStatusArgs{Tenant: tenant, Space: space, Partition: stream}
 
 		// Act
 		resp, err := client.GetStatus(ctx, args)
@@ -95,10 +95,10 @@ func TestGetStatus(t *testing.T) {
 		tenant := "tenant_" + uuid.NewString()
 		space := "space_" + uuid.NewString()
 		stream := "partition_" + uuid.NewString()
-		_, err := client.CreatePartition(ctx, models.CreatePartitionArgs{Tenant: tenant, Space: space, Partition: stream})
+		_, err := client.CreatePartition(ctx, &models.CreatePartitionArgs{Tenant: tenant, Space: space, Partition: stream})
 		require.NoError(t, err)
 
-		args := models.GetStatusArgs{Tenant: tenant, Space: space, Partition: stream}
+		args := &models.GetStatusArgs{Tenant: tenant, Space: space, Partition: stream}
 
 		// Act
 		resp, err := client.GetStatus(ctx, args)
@@ -119,18 +119,17 @@ func TestProduceIntegration(t *testing.T) {
 	tenant := "tenant_" + uuid.NewString()
 	space := "space_" + uuid.NewString()
 	stream := "partition_" + uuid.NewString()
-	_, err := client.CreatePartition(ctx, models.CreatePartitionArgs{Tenant: tenant, Space: space, Partition: stream})
+	_, err := client.CreatePartition(ctx, &models.CreatePartitionArgs{Tenant: tenant, Space: space, Partition: stream})
 	require.NoError(t, err)
 
-	args := models.ProduceArgs{
+	args := &models.ProduceArgs{
 		Tenant:    tenant,
 		Space:     space,
 		Partition: stream,
-		Entries:   test.GetSampleEntries(0, count),
 	}
 
 	// Act
-	enumerator := client.Produce(ctx, args)
+	enumerator := client.Produce(ctx, args, test.GetSampleEntries(0, count))
 	results, err := enumerators.ToSlice(enumerator)
 
 	// Assert

@@ -86,7 +86,7 @@ func (s *serviceImpl) Dispose() {
 	s.cancel()
 }
 
-func (s *serviceImpl) CreatePartition(ctx context.Context, args models.CreatePartitionArgs) (*models.StatusResponse, error) {
+func (s *serviceImpl) CreatePartition(ctx context.Context, args *models.CreatePartitionArgs) (*models.StatusResponse, error) {
 
 	if args.Tenant == "" {
 		return nil, errors.New("invalid tenant")
@@ -102,7 +102,7 @@ func (s *serviceImpl) CreatePartition(ctx context.Context, args models.CreatePar
 
 	for _, t := range s.manager.GetTiers() {
 		store := s.manager.GetStore(t)
-		err := store.CreateTier(ctx, models.CreateTierArgs{Tenant: args.Tenant, Space: args.Space, Partition: args.Partition, Tier: t})
+		err := store.CreateTier(ctx, &models.CreateTierArgs{Tenant: args.Tenant, Space: args.Space, Partition: args.Partition, Tier: t})
 		if err != nil {
 			return nil, err
 		}
@@ -116,7 +116,7 @@ func (s *serviceImpl) CreatePartition(ctx context.Context, args models.CreatePar
 	return &models.StatusResponse{Message: "OK"}, nil
 }
 
-func (s *serviceImpl) GetStatus(ctx context.Context, args models.GetStatusArgs) (*models.StatusResponse, error) {
+func (s *serviceImpl) GetStatus(ctx context.Context, args *models.GetStatusArgs) (*models.StatusResponse, error) {
 
 	for _, t := range s.manager.GetTiers() {
 		repo := s.manager.GetManifestRepository(args.Tenant, args.Space, args.Partition, t)
@@ -132,7 +132,7 @@ func (s *serviceImpl) GetStatus(ctx context.Context, args models.GetStatusArgs) 
 	return &models.StatusResponse{Message: "OK"}, nil
 }
 
-func (s *serviceImpl) GetSpaces(ctx context.Context, args models.GetSpacesArgs) enumerators.Enumerator[*models.SpaceDescriptor] {
+func (s *serviceImpl) GetSpaces(ctx context.Context, args *models.GetSpacesArgs) enumerators.Enumerator[*models.SpaceDescriptor] {
 	return enumerators.Map(
 		s.manager.GetStore(int32(0)).GetSpaces(ctx, args),
 		func(space string) (*models.SpaceDescriptor, error) {
@@ -143,7 +143,7 @@ func (s *serviceImpl) GetSpaces(ctx context.Context, args models.GetSpacesArgs) 
 		})
 }
 
-func (s *serviceImpl) GetPartitions(ctx context.Context, args models.GetPartitionsArgs) enumerators.Enumerator[*models.PartitionDescriptor] {
+func (s *serviceImpl) GetPartitions(ctx context.Context, args *models.GetPartitionsArgs) enumerators.Enumerator[*models.PartitionDescriptor] {
 	return enumerators.Map(
 		s.manager.GetStore(int32(0)).GetPartitions(ctx, args),
 		func(partition string) (*models.PartitionDescriptor, error) {
@@ -155,7 +155,7 @@ func (s *serviceImpl) GetPartitions(ctx context.Context, args models.GetPartitio
 		})
 }
 
-func (s *serviceImpl) Peek(ctx context.Context, args models.PeekArgs) (*models.EntryEnvelope, error) {
+func (s *serviceImpl) Peek(ctx context.Context, args *models.PeekArgs) (*models.EntryEnvelope, error) {
 	const tier = int32(0)
 
 	repo := s.manager.GetManifestRepository(args.Tenant, args.Space, args.Partition, tier)
@@ -172,7 +172,7 @@ func (s *serviceImpl) Peek(ctx context.Context, args models.PeekArgs) (*models.E
 
 	lastSequence := m.LastPage.LastSequence - 1
 
-	enumerator := s.ConsumePartition(ctx, models.ConsumePartitionArgs{Tenant: args.Tenant, Space: args.Space, Partition: args.Partition, MinSequence: lastSequence})
+	enumerator := s.ConsumePartition(ctx, &models.ConsumePartitionArgs{Tenant: args.Tenant, Space: args.Space, Partition: args.Partition, MinSequence: lastSequence})
 	defer enumerator.Dispose()
 
 	var lastEnvelope *models.EntryEnvelope
@@ -186,7 +186,7 @@ func (s *serviceImpl) Peek(ctx context.Context, args models.PeekArgs) (*models.E
 	return lastEnvelope, nil
 }
 
-func (s *serviceImpl) Produce(ctx context.Context, args models.ProduceArgs) enumerators.Enumerator[*models.PageDescriptor] {
+func (s *serviceImpl) Produce(ctx context.Context, args *models.ProduceArgs, entries enumerators.Enumerator[*models.Entry]) enumerators.Enumerator[*models.PageDescriptor] {
 	// Initialize repository and store
 	repo := s.manager.GetManifestRepository(args.Tenant, args.Space, args.Partition, tier0)
 	store := s.manager.GetStore(tier0)
@@ -213,7 +213,7 @@ func (s *serviceImpl) Produce(ctx context.Context, args models.ProduceArgs) enum
 	// Process entries and produce responses
 	return enumerators.Map(
 		enumerators.Chunk(
-			enumerators.FilterMap(args.Entries, func(entry *models.Entry) (*models.Entry, error, bool) {
+			enumerators.FilterMap(entries, func(entry *models.Entry) (*models.Entry, error, bool) {
 				// Context cancellation check
 				if ctx.Err() != nil {
 					return entry, ctx.Err(), false
@@ -280,17 +280,16 @@ func (s *serviceImpl) Produce(ctx context.Context, args models.ProduceArgs) enum
 			}
 
 			// Prepare arguments for writing a page
-			writePageArgs := models.WritePageArgs{
+			writePageArgs := &models.WritePageArgs{
 				Tenant:    args.Tenant,
 				Space:     args.Space,
 				Partition: args.Partition,
 				Tier:      tier,
 				Number:    pageNumber,
-				Entries:   chunk,
 			}
 
 			// Write the page and update state
-			page, err := store.WritePage(ctx, writePageArgs)
+			page, err := store.WritePage(ctx, writePageArgs, chunk)
 			if err != nil {
 				return nil, err
 			}
@@ -326,10 +325,10 @@ func (s *serviceImpl) Produce(ctx context.Context, args models.ProduceArgs) enum
 	)
 }
 
-func (s *serviceImpl) ConsumeSpace(ctx context.Context, args models.ConsumeSpaceArgs) enumerators.Enumerator[*models.EntryEnvelope] {
+func (s *serviceImpl) ConsumeSpace(ctx context.Context, args *models.ConsumeSpaceArgs) enumerators.Enumerator[*models.EntryEnvelope] {
 	const tier = int32(0)
 	store := s.manager.GetStore(tier)
-	partitions := store.GetPartitions(ctx, models.GetPartitionsArgs{Tenant: args.Tenant, Space: args.Space})
+	partitions := store.GetPartitions(ctx, &models.GetPartitionsArgs{Tenant: args.Tenant, Space: args.Space})
 	defer partitions.Dispose()
 
 	var consumers []enumerators.Enumerator[*models.EntryEnvelope]
@@ -353,7 +352,7 @@ func (s *serviceImpl) ConsumeSpace(ctx context.Context, args models.ConsumeSpace
 			minTimestamp = offset.Timestamp
 		}
 
-		consumerPartitionArgs := models.ConsumePartitionArgs{
+		consumerPartitionArgs := &models.ConsumePartitionArgs{
 			Tenant:       args.Tenant,
 			Space:        args.Space,
 			Partition:    partitionKey,
@@ -382,7 +381,7 @@ func (s *serviceImpl) ConsumeSpace(ctx context.Context, args models.ConsumeSpace
 	})
 }
 
-func (s *serviceImpl) ConsumePartition(ctx context.Context, args models.ConsumePartitionArgs) enumerators.Enumerator[*models.EntryEnvelope] {
+func (s *serviceImpl) ConsumePartition(ctx context.Context, args *models.ConsumePartitionArgs) enumerators.Enumerator[*models.EntryEnvelope] {
 	// Collect tiered pages with an early return on error
 	var tieredPages []models.TieredPage
 	for _, tier := range s.manager.GetTiers() {
@@ -422,7 +421,7 @@ func (s *serviceImpl) ConsumePartition(ctx context.Context, args models.ConsumeP
 			_, pos := tieredPage.Page.FindNearestKey(args.MinSequence)
 
 			// Prepare arguments for reading the page
-			readPageArgs := models.ReadPageArgs{
+			readPageArgs := &models.ReadPageArgs{
 				Tenant:    args.Tenant,
 				Space:     args.Space,
 				Partition: args.Partition,
@@ -458,7 +457,7 @@ func (s *serviceImpl) ConsumePartition(ctx context.Context, args models.ConsumeP
 		})
 }
 
-func (s *serviceImpl) Merge(ctx context.Context, args models.MergeArgs) enumerators.Enumerator[*models.PageDescriptor] {
+func (s *serviceImpl) Merge(ctx context.Context, args *models.MergeArgs) enumerators.Enumerator[*models.PageDescriptor] {
 
 	// guard against multiple merge operations runing concurrently
 	mergeID, loaded := s.processingLocks.LoadOrStore(args, uuid.New())
@@ -516,7 +515,7 @@ func (s *serviceImpl) Merge(ctx context.Context, args models.MergeArgs) enumerat
 	flatMappedSource := enumerators.FlatMap(filteredSource, func(page *models.Page) enumerators.Enumerator[*models.Entry] {
 
 		_, pos := page.FindNearestKey(lastSequence)
-		readArgs := models.ReadPageArgs{
+		readArgs := &models.ReadPageArgs{
 			Tenant:    args.Tenant,
 			Space:     args.Space,
 			Partition: args.Partition,
@@ -540,19 +539,18 @@ func (s *serviceImpl) Merge(ctx context.Context, args models.MergeArgs) enumerat
 	// Map chunked entries to merge responses
 	return enumerators.Cleanup(
 		enumerators.FilterMap(chunkedEntries, func(chunk enumerators.Enumerator[*models.Entry]) (*models.PageDescriptor, error, bool) {
-			writePageArgs := models.WritePageArgs{
+			writePageArgs := &models.WritePageArgs{
 				Tenant:      args.Tenant,
 				Space:       args.Space,
 				Partition:   args.Partition,
 				Tier:        targetTier,
 				Number:      pageNumber,
-				Entries:     chunk,
 				MinPageSize: targetMinPageSize,
 				MaxPageSize: targetMaxPageSize,
 			}
 
 			// Write page and handle response
-			page, err := targetStore.WritePage(ctx, writePageArgs)
+			page, err := targetStore.WritePage(ctx, writePageArgs, chunk)
 			if err != nil {
 				return nil, err, false
 			}
@@ -592,7 +590,7 @@ func (s *serviceImpl) Merge(ctx context.Context, args models.MergeArgs) enumerat
 		})
 }
 
-func (s *serviceImpl) Prune(ctx context.Context, args models.PruneArgs) enumerators.Enumerator[*models.PageDescriptor] {
+func (s *serviceImpl) Prune(ctx context.Context, args *models.PruneArgs) enumerators.Enumerator[*models.PageDescriptor] {
 
 	// guard against multiple prune operations runing concurrently
 	pruneID, loaded := s.processingLocks.LoadOrStore(args, uuid.New())
@@ -633,7 +631,7 @@ func (s *serviceImpl) Prune(ctx context.Context, args models.PruneArgs) enumerat
 				return nil, nil, false
 			}
 
-			deletePageArgs := models.DeletePageArgs{
+			deletePageArgs := &models.DeletePageArgs{
 				Tenant:    args.Tenant,
 				Space:     args.Space,
 				Partition: args.Partition,
@@ -656,7 +654,7 @@ func (s *serviceImpl) Prune(ctx context.Context, args models.PruneArgs) enumerat
 	})
 }
 
-func (s *serviceImpl) Rebuild(ctx context.Context, args models.RebuildArgs) enumerators.Enumerator[*models.RebuildResponse] {
+func (s *serviceImpl) Rebuild(ctx context.Context, args *models.RebuildArgs) enumerators.Enumerator[*models.RebuildResponse] {
 
 	// repo := s.manager.GetManifestRepository(args.Tenant, args.Space, args.Partition, args.Tier)
 	// store := s.manager.GetStore(tier0)
@@ -693,7 +691,7 @@ func (s *serviceImpl) backgroundConsumer(ctx context.Context, options *ServiceOp
 
 				if options.EnableBackgroundMerge {
 					// Merge operation
-					merge := s.Merge(ctx, models.MergeArgs{
+					merge := s.Merge(ctx, &models.MergeArgs{
 						Tenant:    event.Tenant,
 						Space:     event.Space,
 						Partition: event.Partition,
@@ -707,7 +705,7 @@ func (s *serviceImpl) backgroundConsumer(ctx context.Context, options *ServiceOp
 
 				if options.EnableBackgroundPrune {
 					// Prune operation
-					prune := s.Prune(ctx, models.PruneArgs{
+					prune := s.Prune(ctx, &models.PruneArgs{
 						Tenant:    event.Tenant,
 						Space:     event.Space,
 						Partition: event.Partition,

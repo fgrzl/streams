@@ -52,8 +52,8 @@ func setup(t *testing.T, name string) (context.Context, stores.StreamStore) {
 
 func TestStore_Manifest(t *testing.T) {
 
-	getWriteManifestArgs := func() models.WriteManifestArgs {
-		return models.WriteManifestArgs{
+	getWriteManifestArgs := func() *models.WriteManifestArgs {
+		return &models.WriteManifestArgs{
 			Tenant:    "t",
 			Space:     "s",
 			Partition: uuid.New().String(),
@@ -69,8 +69,8 @@ func TestStore_Manifest(t *testing.T) {
 		}
 	}
 
-	getReadManifestArgs := func(partition string) models.ReadManifestArgs {
-		return models.ReadManifestArgs{
+	getReadManifestArgs := func(partition string) *models.ReadManifestArgs {
+		return &models.ReadManifestArgs{
 			Tenant:    "t",
 			Space:     "s",
 			Partition: partition,
@@ -112,7 +112,7 @@ func TestStore_Manifest(t *testing.T) {
 			// Arrange
 			args := getWriteManifestArgs()
 			args.Tenant = "" // Invalid tenant
-			store.CreateTier(ctx, models.CreateTierArgs{Tenant: "t", Space: args.Space, Partition: args.Partition, Tier: args.Tier})
+			store.CreateTier(ctx, &models.CreateTierArgs{Tenant: "t", Space: args.Space, Partition: args.Partition, Tier: args.Tier})
 
 			// Act
 			tag, err := store.WriteManifest(ctx, args)
@@ -125,7 +125,7 @@ func TestStore_Manifest(t *testing.T) {
 		t.Run(name+" should write a new manifest", func(t *testing.T) {
 			// Arrange
 			args := getWriteManifestArgs()
-			store.CreateTier(ctx, models.CreateTierArgs{Tenant: args.Tenant, Space: args.Space, Partition: args.Partition, Tier: 0})
+			store.CreateTier(ctx, &models.CreateTierArgs{Tenant: args.Tenant, Space: args.Space, Partition: args.Partition, Tier: 0})
 
 			// Act
 			tag, err := store.WriteManifest(ctx, args)
@@ -139,7 +139,7 @@ func TestStore_Manifest(t *testing.T) {
 
 			// Arrange
 			args := getWriteManifestArgs()
-			store.CreateTier(ctx, models.CreateTierArgs{Tenant: args.Tenant, Space: args.Space, Partition: args.Partition, Tier: 0})
+			store.CreateTier(ctx, &models.CreateTierArgs{Tenant: args.Tenant, Space: args.Space, Partition: args.Partition, Tier: 0})
 
 			tag, err := store.WriteManifest(ctx, args)
 			args.Tag = tag
@@ -156,7 +156,7 @@ func TestStore_Manifest(t *testing.T) {
 
 			// Arrange
 			args := getWriteManifestArgs()
-			store.CreateTier(ctx, models.CreateTierArgs{Tenant: args.Tenant, Space: args.Space, Partition: args.Partition, Tier: 0})
+			store.CreateTier(ctx, &models.CreateTierArgs{Tenant: args.Tenant, Space: args.Space, Partition: args.Partition, Tier: 0})
 			tag, err := store.WriteManifest(ctx, args)
 			args.Tag = time.Now()
 
@@ -172,7 +172,7 @@ func TestStore_Manifest(t *testing.T) {
 
 			// Arrange
 			args := getReadManifestArgs(uuid.New().String())
-			store.CreateTier(ctx, models.CreateTierArgs{Tenant: args.Tenant, Space: args.Space, Partition: args.Partition, Tier: 0})
+			store.CreateTier(ctx, &models.CreateTierArgs{Tenant: args.Tenant, Space: args.Space, Partition: args.Partition, Tier: 0})
 
 			// Act
 			wrapper, err := store.ReadManifest(ctx, args)
@@ -187,7 +187,7 @@ func TestStore_Manifest(t *testing.T) {
 		t.Run(name+" should get manifest and concurrency tag", func(t *testing.T) {
 			// Arrange
 			writeArgs := getWriteManifestArgs()
-			store.CreateTier(ctx, models.CreateTierArgs{Tenant: writeArgs.Tenant, Space: writeArgs.Space, Partition: writeArgs.Partition, Tier: writeArgs.Tier})
+			store.CreateTier(ctx, &models.CreateTierArgs{Tenant: writeArgs.Tenant, Space: writeArgs.Space, Partition: writeArgs.Partition, Tier: writeArgs.Tier})
 			tag, err := store.WriteManifest(ctx, writeArgs)
 			args := getReadManifestArgs(writeArgs.Partition)
 
@@ -210,18 +210,18 @@ func TestStore_Page(t *testing.T) {
 		t.Run(name+" should write a page", func(t *testing.T) {
 			// Arrange
 			count := 10
-			args := models.WritePageArgs{
+			args := &models.WritePageArgs{
 				Tenant:    "t",
 				Space:     "s",
 				Partition: uuid.NewString(),
 				Tier:      int32(0),
 				Number:    1,
-				Entries:   test.GetSampleEntries(0, count),
 			}
-			store.CreateTier(ctx, models.CreateTierArgs{Tenant: args.Tenant, Space: args.Space, Partition: args.Partition, Tier: args.Tier})
+			entries := test.GetSampleEntries(0, count)
+			store.CreateTier(ctx, &models.CreateTierArgs{Tenant: args.Tenant, Space: args.Space, Partition: args.Partition, Tier: args.Tier})
 
 			// Act
-			page, err := store.WritePage(ctx, args)
+			page, err := store.WritePage(ctx, args, entries)
 
 			// Assert
 			assert.Nil(t, err)
@@ -233,21 +233,21 @@ func TestStore_Page(t *testing.T) {
 		t.Run(name+" should not overwrite a page", func(t *testing.T) {
 			// Arrange
 			count := 10
-			args := models.WritePageArgs{
+			args := &models.WritePageArgs{
 				Tenant:    "t",
 				Space:     "s",
 				Partition: uuid.NewString(),
 				Tier:      int32(0),
 				Number:    1,
-				Entries:   test.GetSampleEntries(0, count),
 			}
-			store.CreateTier(ctx, models.CreateTierArgs{Tenant: args.Tenant, Space: args.Space, Partition: args.Partition, Tier: args.Tier})
+			entries := test.GetSampleEntries(0, count)
+			store.CreateTier(ctx, &models.CreateTierArgs{Tenant: args.Tenant, Space: args.Space, Partition: args.Partition, Tier: args.Tier})
 
-			page, err := store.WritePage(ctx, args)
-			args.Entries = test.GetSampleEntries(0, count)
+			page, err := store.WritePage(ctx, args, entries)
+			entries = test.GetSampleEntries(0, count)
 
 			// Act
-			page, err = store.WritePage(ctx, args)
+			page, err = store.WritePage(ctx, args, entries)
 
 			// Assert
 			assert.IsType(t, &models.ConcurrencyError{}, err)
@@ -257,19 +257,19 @@ func TestStore_Page(t *testing.T) {
 		t.Run(name+" should not write page under min size", func(t *testing.T) {
 			// Arrange
 			count := 10
-			args := models.WritePageArgs{
+			args := &models.WritePageArgs{
 				Tenant:      "t",
 				Space:       "s",
 				Partition:   uuid.NewString(),
 				Tier:        int32(0),
 				Number:      1,
 				MinPageSize: 1000,
-				Entries:     test.GetSampleEntries(0, count),
 			}
-			store.CreateTier(ctx, models.CreateTierArgs{Tenant: args.Tenant, Space: args.Space, Partition: args.Partition, Tier: args.Tier})
+			entries := test.GetSampleEntries(0, count)
+			store.CreateTier(ctx, &models.CreateTierArgs{Tenant: args.Tenant, Space: args.Space, Partition: args.Partition, Tier: args.Tier})
 
 			// Act
-			page, err := store.WritePage(ctx, args)
+			page, err := store.WritePage(ctx, args, entries)
 
 			// Assert
 			assert.Nil(t, err)
@@ -279,18 +279,18 @@ func TestStore_Page(t *testing.T) {
 		t.Run(name+" should read a page", func(t *testing.T) {
 			// Arrange
 			count := 10
-			writeArgs := models.WritePageArgs{
+			writeArgs := &models.WritePageArgs{
 				Tenant:    "t",
 				Space:     "s",
 				Partition: uuid.NewString(),
 				Tier:      int32(0),
 				Number:    1,
-				Entries:   test.GetSampleEntries(0, count),
 			}
-			store.CreateTier(ctx, models.CreateTierArgs{Tenant: writeArgs.Tenant, Space: writeArgs.Space, Partition: writeArgs.Partition, Tier: writeArgs.Tier})
-			store.WritePage(ctx, writeArgs)
+			results := test.GetSampleEntries(0, count)
+			store.CreateTier(ctx, &models.CreateTierArgs{Tenant: writeArgs.Tenant, Space: writeArgs.Space, Partition: writeArgs.Partition, Tier: writeArgs.Tier})
+			store.WritePage(ctx, writeArgs, results)
 
-			readArgs := models.ReadPageArgs{
+			readArgs := &models.ReadPageArgs{
 				Tenant:    writeArgs.Tenant,
 				Space:     writeArgs.Space,
 				Partition: writeArgs.Partition,
@@ -302,26 +302,26 @@ func TestStore_Page(t *testing.T) {
 			enumerator := store.ReadPage(ctx, readArgs)
 
 			// Assert
-			entries, err := enumerators.ToSlice(enumerator)
+			entrySlice, err := enumerators.ToSlice(enumerator)
 			assert.Nil(t, err)
-			assert.Len(t, entries, int(count))
+			assert.Len(t, entrySlice, int(count))
 		})
 
 		t.Run(name+" should delete page", func(t *testing.T) {
 			// Arrange
 			count := 10
-			writeArgs := models.WritePageArgs{
+			writeArgs := &models.WritePageArgs{
 				Tenant:    "t",
 				Space:     "s",
 				Partition: uuid.NewString(),
 				Tier:      int32(0),
 				Number:    1,
-				Entries:   test.GetSampleEntries(0, count),
 			}
-			store.CreateTier(ctx, models.CreateTierArgs{Tenant: writeArgs.Tenant, Space: writeArgs.Space, Partition: writeArgs.Partition, Tier: writeArgs.Tier})
-			store.WritePage(ctx, writeArgs)
+			entries := test.GetSampleEntries(0, count)
+			store.CreateTier(ctx, &models.CreateTierArgs{Tenant: writeArgs.Tenant, Space: writeArgs.Space, Partition: writeArgs.Partition, Tier: writeArgs.Tier})
+			store.WritePage(ctx, writeArgs, entries)
 
-			deleteArgs := models.DeletePageArgs{
+			deleteArgs := &models.DeletePageArgs{
 				Tenant:    writeArgs.Tenant,
 				Space:     writeArgs.Space,
 				Partition: writeArgs.Partition,
@@ -339,7 +339,7 @@ func TestStore_Page(t *testing.T) {
 
 		t.Run(name+" should delete page when does not exist", func(t *testing.T) {
 			// Arrange
-			args := models.DeletePageArgs{
+			args := &models.DeletePageArgs{
 				Tenant:    "t",
 				Space:     "s",
 				Partition: uuid.NewString(),
@@ -356,17 +356,17 @@ func TestStore_Page(t *testing.T) {
 
 		t.Run(name+" should fail writing page to non-existent tier", func(t *testing.T) {
 			// Arrange
-			args := models.WritePageArgs{
+			args := &models.WritePageArgs{
 				Tenant:    "t",
 				Space:     "s",
 				Partition: uuid.NewString(),
 				Tier:      int32(0),
 				Number:    1,
-				Entries:   test.GetSampleEntries(0, 10),
 			}
+			entries := test.GetSampleEntries(0, 10)
 
 			// Act
-			page, err := store.WritePage(ctx, args)
+			page, err := store.WritePage(ctx, args, entries)
 
 			// Assert
 			assert.NotNil(t, err)
@@ -375,7 +375,7 @@ func TestStore_Page(t *testing.T) {
 
 		t.Run(name+" should handle reading page from non-existent tier", func(t *testing.T) {
 			// Arrange
-			args := models.ReadPageArgs{
+			args := &models.ReadPageArgs{
 				Tenant:    "t",
 				Space:     "s",
 				Partition: uuid.NewString(),
@@ -394,7 +394,7 @@ func TestStore_Page(t *testing.T) {
 
 		t.Run(name+" should fail deleting page from non-existent tier", func(t *testing.T) {
 			// Arrange
-			args := models.DeletePageArgs{
+			args := &models.DeletePageArgs{
 				Tenant:    "t",
 				Space:     "s",
 				Partition: uuid.NewString(),
@@ -412,28 +412,27 @@ func TestStore_Page(t *testing.T) {
 		t.Run(name+" should list pages in a partition", func(t *testing.T) {
 			// Arrange
 			partition := uuid.NewString()
-			store.CreateTier(ctx, models.CreateTierArgs{Tenant: "t", Space: "s", Partition: partition, Tier: 0})
-
-			store.WritePage(ctx, models.WritePageArgs{
+			store.CreateTier(ctx, &models.CreateTierArgs{Tenant: "t", Space: "s", Partition: partition, Tier: 0})
+			entries := test.GetSampleEntries(0, 5)
+			store.WritePage(ctx, &models.WritePageArgs{
 				Tenant:    "t",
 				Space:     "s",
 				Partition: partition,
 				Tier:      int32(0),
 				Number:    1,
-				Entries:   test.GetSampleEntries(0, 5),
-			})
+			}, entries)
 
-			store.WritePage(ctx, models.WritePageArgs{
+			entries = test.GetSampleEntries(5, 5)
+			store.WritePage(ctx, &models.WritePageArgs{
 				Tenant:    "t",
 				Space:     "s",
 				Partition: partition,
 				Tier:      int32(0),
 				Number:    2,
-				Entries:   test.GetSampleEntries(5, 5),
-			})
+			}, entries)
 
 			// Act
-			enumerator := store.GetPages(ctx, models.GetPagesArgs{
+			enumerator := store.GetPages(ctx, &models.GetPagesArgs{
 				Tenant:    "t",
 				Space:     "s",
 				Partition: partition,

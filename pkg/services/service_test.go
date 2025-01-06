@@ -46,7 +46,7 @@ func setupService(t *testing.T) (context.Context, services.Service) {
 }
 
 func setupPartition(t *testing.T, ctx context.Context, service services.Service, tenant string, space string, partition string, count int) {
-	createPartitionArgs := models.CreatePartitionArgs{
+	createPartitionArgs := &models.CreatePartitionArgs{
 		Tenant:    tenant,
 		Space:     space,
 		Partition: partition,
@@ -61,13 +61,13 @@ func setupPartition(t *testing.T, ctx context.Context, service services.Service,
 }
 
 func produce(t *testing.T, ctx context.Context, service services.Service, tenant string, space string, partition string, seed int, count int) {
-	produceArgs := models.ProduceArgs{
+	produceArgs := &models.ProduceArgs{
 		Tenant:    tenant,
 		Space:     space,
 		Partition: partition,
-		Entries:   test.GetSampleEntries(seed, count),
 	}
-	enumerator := service.Produce(ctx, produceArgs)
+	entries := test.GetSampleEntries(seed, count)
+	enumerator := service.Produce(ctx, produceArgs, entries)
 	actual, err := enumerators.Sum(enumerator, func(page *models.PageDescriptor) (int, error) {
 		return int(page.Count), nil
 	})
@@ -84,7 +84,7 @@ func TestService_CreatePartition(t *testing.T) {
 		space := "s_" + uuid.NewString()
 		partition := "p_" + uuid.NewString()
 
-		args := models.CreatePartitionArgs{
+		args := &models.CreatePartitionArgs{
 			Tenant:    tenant,
 			Space:     space,
 			Partition: partition,
@@ -104,7 +104,7 @@ func TestService_CreatePartition(t *testing.T) {
 		space := "s_" + uuid.NewString()
 		partition := "p_" + uuid.NewString()
 
-		args := models.CreatePartitionArgs{
+		args := &models.CreatePartitionArgs{
 			Tenant:    tenant,
 			Space:     space,
 			Partition: partition,
@@ -125,7 +125,7 @@ func TestService_CreatePartition(t *testing.T) {
 		space := ""
 		partition := "p_" + uuid.NewString()
 
-		args := models.CreatePartitionArgs{
+		args := &models.CreatePartitionArgs{
 			Tenant:    tenant,
 			Space:     space,
 			Partition: partition,
@@ -146,7 +146,7 @@ func TestService_CreatePartition(t *testing.T) {
 		space := "s_" + uuid.NewString()
 		partition := ""
 
-		args := models.CreatePartitionArgs{
+		args := &models.CreatePartitionArgs{
 			Tenant:    tenant,
 			Space:     space,
 			Partition: partition,
@@ -177,7 +177,7 @@ func TestService_GetSpaces(t *testing.T) {
 			}
 		}
 
-		args := models.GetSpacesArgs{
+		args := &models.GetSpacesArgs{
 			Tenant: tenant,
 		}
 
@@ -203,7 +203,7 @@ func TestService_GetPartitions(t *testing.T) {
 			setupPartition(t, ctx, service, tenant, space, partition, 0)
 		}
 
-		args := models.GetPartitionsArgs{
+		args := &models.GetPartitionsArgs{
 			Tenant: tenant,
 			Space:  space,
 		}
@@ -235,7 +235,7 @@ func TestService_GetStatus(t *testing.T) {
 
 		setupPartition(t, ctx, service, tenant, space, partition, 10_000)
 
-		args := models.GetStatusArgs{
+		args := &models.GetStatusArgs{
 			Tenant:    tenant,
 			Space:     space,
 			Partition: partition,
@@ -256,7 +256,7 @@ func TestService_GetStatus(t *testing.T) {
 		space := "s_" + uuid.NewString()
 		partition := "p_" + uuid.NewString()
 
-		args := models.GetStatusArgs{
+		args := &models.GetStatusArgs{
 			Tenant:    tenant,
 			Space:     space,
 			Partition: partition,
@@ -281,7 +281,7 @@ func TestService_Peek(t *testing.T) {
 		space := "s_" + uuid.NewString()
 		partition := "p_" + uuid.NewString()
 
-		args := models.PeekArgs{
+		args := &models.PeekArgs{
 			Tenant:    tenant,
 			Space:     space,
 			Partition: partition,
@@ -305,7 +305,7 @@ func TestService_Peek(t *testing.T) {
 
 		setupPartition(t, ctx, service, tenant, space, partition, count)
 
-		args := models.PeekArgs{
+		args := &models.PeekArgs{
 			Tenant:    tenant,
 			Space:     space,
 			Partition: partition,
@@ -336,7 +336,7 @@ func TestService_ConsumeSpace(t *testing.T) {
 			total += count
 		}
 
-		args := models.ConsumeSpaceArgs{
+		args := &models.ConsumeSpaceArgs{
 			Tenant: tenant,
 			Space:  space,
 		}
@@ -367,7 +367,7 @@ func TestService_ConsumePartition(t *testing.T) {
 		setupPartition(t, ctx, service, tenant, space, partition, seed1)
 		produce(t, ctx, service, tenant, space, partition, seed1, seed2)
 
-		args := models.ConsumePartitionArgs{
+		args := &models.ConsumePartitionArgs{
 			Tenant:    tenant,
 			Space:     space,
 			Partition: partition,
@@ -393,7 +393,7 @@ func TestService_ConsumePartition(t *testing.T) {
 		min := 5899
 		setupPartition(t, ctx, service, tenant, space, partition, count)
 
-		args := models.ConsumePartitionArgs{
+		args := &models.ConsumePartitionArgs{
 			Tenant:      tenant,
 			Space:       space,
 			Partition:   partition,
@@ -423,7 +423,7 @@ func TestService_ConsumePartition(t *testing.T) {
 		time.Sleep(3 * time.Millisecond)
 		produce(t, ctx, service, tenant, space, partition, count, 25)
 
-		args := models.ConsumePartitionArgs{
+		args := &models.ConsumePartitionArgs{
 			Tenant:       tenant,
 			Space:        space,
 			Partition:    partition,
@@ -453,15 +453,14 @@ func TestService_Produce(t *testing.T) {
 
 		setupPartition(t, ctx, service, tenant, space, partition, 0)
 
-		args := models.ProduceArgs{
+		args := &models.ProduceArgs{
 			Tenant:    tenant,
 			Space:     space,
 			Partition: partition,
-			Entries:   test.GetSampleEntries(0, count),
 		}
-
+		entries := test.GetSampleEntries(0, count)
 		// Act
-		enumerator := service.Produce(ctx, args)
+		enumerator := service.Produce(ctx, args, entries)
 		pages, err := enumerators.ToSlice(enumerator)
 
 		// Assert
@@ -479,15 +478,15 @@ func TestService_Produce(t *testing.T) {
 
 		setupPartition(t, ctx, service, tenant, space, partition, 0)
 
-		args := models.ProduceArgs{
+		args := &models.ProduceArgs{
 			Tenant:    tenant,
 			Space:     space,
 			Partition: partition,
-			Entries:   test.GetSampleEntries(0, count),
 		}
+		entries := test.GetSampleEntries(0, count)
 
 		// Act
-		enumerator := service.Produce(ctx, args)
+		enumerator := service.Produce(ctx, args, entries)
 		pages, err := enumerators.ToSlice(enumerator)
 
 		// Assert
@@ -504,20 +503,20 @@ func TestService_Produce(t *testing.T) {
 
 		setupPartition(t, ctx, service, tenant, space, partition, 0)
 
-		args := models.ProduceArgs{
+		args := &models.ProduceArgs{
 			Tenant:    tenant,
 			Space:     space,
 			Partition: partition,
-			Entries: enumerators.Slice(
-				[]*models.Entry{
-					test.GetSampleEntry(tenant, space, partition, 1),
-					test.GetSampleEntry(tenant, space, partition, 2),
-					test.GetSampleEntry(tenant, space, partition, 0),
-				}),
 		}
+		entries := enumerators.Slice(
+			[]*models.Entry{
+				test.GetSampleEntry(tenant, space, partition, 1),
+				test.GetSampleEntry(tenant, space, partition, 2),
+				test.GetSampleEntry(tenant, space, partition, 0),
+			})
 
 		// Act
-		enumerator := service.Produce(ctx, args)
+		enumerator := service.Produce(ctx, args, entries)
 		pages, err := enumerators.ToSlice(enumerator)
 
 		// Assert
@@ -534,20 +533,21 @@ func TestService_Produce(t *testing.T) {
 
 		setupPartition(t, ctx, service, tenant, space, partition, 0)
 
-		args := models.ProduceArgs{
+		args := &models.ProduceArgs{
 			Tenant:    tenant,
 			Space:     space,
 			Partition: partition,
-			Entries: enumerators.Slice(
-				[]*models.Entry{
-					test.GetSampleEntry(tenant, space, partition, 1),
-					test.GetSampleEntry(tenant, space, partition, 2),
-					test.GetSampleEntry(tenant, space, partition, 8),
-				}),
 		}
 
+		entries := enumerators.Slice(
+			[]*models.Entry{
+				test.GetSampleEntry(tenant, space, partition, 1),
+				test.GetSampleEntry(tenant, space, partition, 2),
+				test.GetSampleEntry(tenant, space, partition, 8),
+			})
+
 		// Act
-		enumerator := service.Produce(ctx, args)
+		enumerator := service.Produce(ctx, args, entries)
 		pages, err := enumerators.ToSlice(enumerator)
 
 		// Assert
@@ -567,24 +567,24 @@ func TestService_Produce(t *testing.T) {
 
 			duplicate := test.GetSampleEntry(tenant, space, partition, 3)
 
-			args := models.ProduceArgs{
+			args := &models.ProduceArgs{
 				Tenant:    tenant,
 				Space:     space,
 				Partition: partition,
 				Strategy:  strategy,
-				Entries: enumerators.Slice(
-					[]*models.Entry{
-						test.GetSampleEntry(tenant, space, partition, 1),
-						test.GetSampleEntry(tenant, space, partition, 2),
-						duplicate,
-						duplicate,
-						test.GetSampleEntry(tenant, space, partition, 4),
-						test.GetSampleEntry(tenant, space, partition, 5),
-					}),
 			}
+			entries := enumerators.Slice(
+				[]*models.Entry{
+					test.GetSampleEntry(tenant, space, partition, 1),
+					test.GetSampleEntry(tenant, space, partition, 2),
+					duplicate,
+					duplicate,
+					test.GetSampleEntry(tenant, space, partition, 4),
+					test.GetSampleEntry(tenant, space, partition, 5),
+				})
 
 			// Act
-			enumerator := service.Produce(ctx, args)
+			enumerator := service.Produce(ctx, args, entries)
 			pages, err := enumerators.ToSlice(enumerator)
 
 			// Assert
@@ -606,24 +606,25 @@ func TestService_Produce(t *testing.T) {
 
 			duplicate := test.GetSampleEntry(tenant, space, partition, 3)
 
-			args := models.ProduceArgs{
+			args := &models.ProduceArgs{
 				Tenant:    tenant,
 				Space:     space,
 				Partition: partition,
 				Strategy:  strategy,
-				Entries: enumerators.Slice(
-					[]*models.Entry{
-						test.GetSampleEntry(tenant, space, partition, 1),
-						test.GetSampleEntry(tenant, space, partition, 2),
-						duplicate,
-						duplicate,
-						test.GetSampleEntry(tenant, space, partition, 4),
-						test.GetSampleEntry(tenant, space, partition, 5),
-					}),
 			}
 
+			entries := enumerators.Slice(
+				[]*models.Entry{
+					test.GetSampleEntry(tenant, space, partition, 1),
+					test.GetSampleEntry(tenant, space, partition, 2),
+					duplicate,
+					duplicate,
+					test.GetSampleEntry(tenant, space, partition, 4),
+					test.GetSampleEntry(tenant, space, partition, 5),
+				})
+
 			// Act
-			enumerator := service.Produce(ctx, args)
+			enumerator := service.Produce(ctx, args, entries)
 			pages, err := enumerators.ToSlice(enumerator)
 
 			// Assert
@@ -648,7 +649,7 @@ func TestService_Merge(t *testing.T) {
 			produce(t, ctx, service, tenant, space, partition, count*i, count)
 		}
 
-		args := models.MergeArgs{
+		args := &models.MergeArgs{
 			Tenant:    tenant,
 			Space:     space,
 			Partition: partition,
@@ -675,7 +676,7 @@ func TestService_Merge(t *testing.T) {
 			produce(t, ctx, service, tenant, space, partition, count*i, count)
 		}
 
-		args := models.MergeArgs{
+		args := &models.MergeArgs{
 			Tenant:    tenant,
 			Space:     space,
 			Partition: partition,
@@ -707,7 +708,7 @@ func TestService_Prune(t *testing.T) {
 			produce(t, ctx, service, tenant, space, partition, count*i, count)
 		}
 
-		merge := service.Merge(ctx, models.MergeArgs{
+		merge := service.Merge(ctx, &models.MergeArgs{
 			Tenant:    tenant,
 			Space:     space,
 			Partition: partition,
@@ -716,7 +717,7 @@ func TestService_Prune(t *testing.T) {
 		require.NoError(t, err)
 		require.NotEmpty(t, mergedPages)
 
-		args := models.PruneArgs{
+		args := &models.PruneArgs{
 			Tenant:    tenant,
 			Space:     space,
 			Partition: partition,
