@@ -170,6 +170,10 @@ func (s *serviceImpl) Peek(ctx context.Context, args *models.PeekArgs) (*models.
 		return nil, errors.New("manifest does not exist")
 	}
 
+	if m.LastPage == nil {
+		m.LastPage = &models.Page{}
+	}
+
 	lastSequence := m.LastPage.LastSequence - 1
 
 	enumerator := s.ConsumePartition(ctx, &models.ConsumePartitionArgs{Tenant: args.Tenant, Space: args.Space, Partition: args.Partition, MinSequence: lastSequence})
@@ -195,6 +199,10 @@ func (s *serviceImpl) Produce(ctx context.Context, args *models.ProduceArgs, ent
 	manifest, err := repo.GetManifest()
 	if err != nil {
 		return enumerators.Error[*models.PageDescriptor](err)
+	}
+
+	if manifest.LastPage == nil {
+		manifest.LastPage = &models.Page{}
 	}
 
 	// Initialize state variables
