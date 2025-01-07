@@ -173,6 +173,7 @@ func (m *manifestRepository) backgroundConsumer(ctx context.Context) {
 					Partition: m.key.Partition,
 					Tier:      m.key.Tier,
 					Tag:       m.tag,
+					Manifest:  m.manifest,
 				}
 
 				tag, err := m.store.WriteManifest(ctx, args)
@@ -195,7 +196,9 @@ func (m *manifestRepository) backgroundConsumer(ctx context.Context) {
 					Tenant:    m.key.Tenant,
 					Space:     m.key.Space,
 					Partition: m.key.Partition,
-					Tier:      m.key.Tier}
+					Tier:      m.key.Tier,
+					Manifest:  m.manifest,
+				}
 
 				tag, err := m.store.WriteManifest(ctx, args)
 				if err != nil {
