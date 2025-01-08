@@ -61,7 +61,7 @@ func (g *grpcClient) ConsumePartition(ctx context.Context, args *models.ConsumeP
 }
 
 func (g *grpcClient) GetSpaces(ctx context.Context, args *models.GetSpacesArgs) enumerators.Enumerator[*models.SpaceDescriptor] {
-	ctx, req := mapGetSpacesArgs(ctx, args)
+	ctx, req := mapGetSpacesArgs(ctx)
 	res, err := g.internal.GetSpaces(ctx, req)
 	if err != nil {
 		return enumerators.Error[*models.SpaceDescriptor](err)
@@ -84,7 +84,7 @@ func (g *grpcClient) Peek(ctx context.Context, args *models.PeekArgs) (*models.E
 }
 
 func (g *grpcClient) Produce(ctx context.Context, args *models.ProduceArgs, entries enumerators.Enumerator[*models.Entry]) enumerators.Enumerator[*models.PageDescriptor] {
-	ctx = addHeaders(ctx, args.Tenant, args.Space, args.Partition)
+	ctx = addHeaders(ctx, args.Space, args.Partition)
 
 	stream, err := g.internal.Produce(ctx)
 	if err != nil {
@@ -148,9 +148,8 @@ func (g *grpcClient) Dispose() {
 // Internal
 //
 
-func addHeaders(ctx context.Context, tenant string, space string, stream string) context.Context {
+func addHeaders(ctx context.Context, space string, stream string) context.Context {
 	headers := metadata.Pairs(
-		"woolf-tenant", tenant,
 		"woolf-space", space,
 		"woolf-stream", stream,
 	)
@@ -158,51 +157,50 @@ func addHeaders(ctx context.Context, tenant string, space string, stream string)
 }
 
 func mapCreatePartitionArgs(ctx context.Context, args *models.CreatePartitionArgs) (context.Context, *models.CreatePartitionRequest) {
-	ctx = addHeaders(ctx, args.Tenant, args.Space, args.Partition)
+	ctx = addHeaders(ctx, args.Space, args.Partition)
 	return ctx, &models.CreatePartitionRequest{}
 }
 
 func mapGetStatusArgs(ctx context.Context, args *models.GetStatusArgs) (context.Context, *models.GetStatusRequest) {
-	ctx = addHeaders(ctx, args.Tenant, args.Space, args.Partition)
+	ctx = addHeaders(ctx, args.Space, args.Partition)
 	return ctx, &models.GetStatusRequest{}
 }
 
-func mapGetSpacesArgs(ctx context.Context, args *models.GetSpacesArgs) (context.Context, *models.GetSpacesRequest) {
-	ctx = addHeaders(ctx, args.Tenant, "", "")
+func mapGetSpacesArgs(ctx context.Context) (context.Context, *models.GetSpacesRequest) {
 	return ctx, &models.GetSpacesRequest{}
 }
 
 func mapGetPartitionsArgs(ctx context.Context, args *models.GetPartitionsArgs) (context.Context, *models.GetPartitionsRequest) {
-	ctx = addHeaders(ctx, args.Tenant, args.Space, "")
+	ctx = addHeaders(ctx, args.Space, "")
 	return ctx, &models.GetPartitionsRequest{}
 }
 
 func mapPeekArgs(ctx context.Context, args *models.PeekArgs) (context.Context, *models.PeekRequest) {
-	ctx = addHeaders(ctx, args.Tenant, args.Space, args.Partition)
+	ctx = addHeaders(ctx, args.Space, args.Partition)
 	return ctx, &models.PeekRequest{}
 }
 
 func mapMergeArgs(ctx context.Context, args *models.MergeArgs) (context.Context, *models.MergeRequest) {
-	ctx = addHeaders(ctx, args.Tenant, args.Space, args.Partition)
+	ctx = addHeaders(ctx, args.Space, args.Partition)
 	return ctx, &models.MergeRequest{
 		Tier: args.Tier,
 	}
 }
 
 func mapPruneArgs(ctx context.Context, args *models.PruneArgs) (context.Context, *models.PruneRequest) {
-	ctx = addHeaders(ctx, args.Tenant, args.Space, args.Partition)
+	ctx = addHeaders(ctx, args.Space, args.Partition)
 	return ctx, &models.PruneRequest{
 		Tier: args.Tier,
 	}
 }
 
 func mapRebuildArgs(ctx context.Context, args *models.RebuildArgs) (context.Context, *models.RebuildRequest) {
-	ctx = addHeaders(ctx, args.Tenant, args.Space, args.Partition)
+	ctx = addHeaders(ctx, args.Space, args.Partition)
 	return ctx, &models.RebuildRequest{}
 }
 
 func mapConsumeSpaceArgs(ctx context.Context, args *models.ConsumeSpaceArgs) (context.Context, *models.ConsumeSpaceRequest) {
-	ctx = addHeaders(ctx, args.Tenant, args.Space, "")
+	ctx = addHeaders(ctx, args.Space, "")
 	return ctx, &models.ConsumeSpaceRequest{
 		Offsets:      args.Offsets,
 		MinTimestamp: args.MinTimestamp,
@@ -211,7 +209,7 @@ func mapConsumeSpaceArgs(ctx context.Context, args *models.ConsumeSpaceArgs) (co
 }
 
 func mapConsumePartitionArgs(ctx context.Context, args *models.ConsumePartitionArgs) (context.Context, *models.ConsumePartitionRequest) {
-	ctx = addHeaders(ctx, args.Tenant, args.Space, args.Partition)
+	ctx = addHeaders(ctx, args.Space, args.Partition)
 	return ctx, &models.ConsumePartitionRequest{
 		MinSequence:  args.MinSequence,
 		MinTimestamp: args.MinTimestamp,

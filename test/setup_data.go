@@ -35,7 +35,7 @@ func GetSampleEntries(seed int, count int) enumerators.Enumerator[*models.Entry]
 	})
 }
 
-func GetSampleEntry(tenant string, space string, partition string, sequence uint64) *models.Entry {
+func GetSampleEntry(space string, partition string, sequence uint64) *models.Entry {
 	entryId := uuid.New()
 	correlationId := uuid.New()
 	causationId := uuid.New()
