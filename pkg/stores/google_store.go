@@ -76,3 +76,8 @@ func (s *GoogleStreamStore) WriteManifest(ctx context.Context, args *models.Writ
 func (s *GoogleStreamStore) WritePage(ctx context.Context, args *models.WritePageArgs, entries enumerators.Enumerator[*models.Entry]) (*models.Page, error) {
 	panic("unimplemented")
 }
+
+// ScavengeTier implements StreamStore.
+func (s *GoogleStreamStore) Scavenge(ctx context.Context) error {
+	panic("unimplemented")
+}

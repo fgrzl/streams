@@ -72,6 +72,11 @@ func (s *S3StreamStore) WritePage(ctx context.Context, args *models.WritePageArg
 	panic("unimplemented")
 }
 
+// ScavengeTier implements StreamStore.
+func (s *S3StreamStore) Scavenge(ctx context.Context) error {
+	panic("unimplemented")
+}
+
 // NewFileSystemStore creates a new instance of FileSystemPartitionStore
 func NewS3Store() StreamStore {
 	return &S3StreamStore{}
