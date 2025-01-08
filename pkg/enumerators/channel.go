@@ -24,7 +24,6 @@ func (e *ChannelEnumerator[T]) MoveNext() bool {
 	case err, ok := <-e.errCh:
 		if ok {
 			e.err = err
-			e.Complete() // Signal completion on error
 			return false
 		}
 	case data, ok := <-e.dataCh:
@@ -32,7 +31,7 @@ func (e *ChannelEnumerator[T]) MoveNext() bool {
 			e.current = data
 			return true
 		}
-		e.Complete() // Signal completion when data channel is closed
+		return false
 	}
 	return false
 }
@@ -49,6 +48,7 @@ func (e *ChannelEnumerator[T]) Err() error {
 
 // Dispose cleans up resources and signals termination.
 func (e *ChannelEnumerator[T]) Dispose() {
+	e.Complete()
 	e.once.Do(func() {
 		close(e.doneCh)
 	})
@@ -78,10 +78,9 @@ func (e *ChannelEnumerator[T]) Error(err error) {
 	}
 }
 
-// Complete signals that no more values will be sent.
+// Complete signals that no more values will be published.
 func (e *ChannelEnumerator[T]) Complete() {
 	e.once.Do(func() {
-		close(e.doneCh)
 		close(e.dataCh)
 		close(e.errCh)
 	})
