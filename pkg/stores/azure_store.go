@@ -76,3 +76,8 @@ func (s *AzureStreamStore) WriteManifest(ctx context.Context, args *models.Write
 func (s *AzureStreamStore) WritePage(ctx context.Context, args *models.WritePageArgs, entries enumerators.Enumerator[*models.Entry]) (*models.Page, error) {
 	panic("unimplemented")
 }
+
+// ScavengeTier implements StreamStore.
+func (s *AzureStreamStore) Scavenge(ctx context.Context) error {
+	panic("unimplemented")
+}

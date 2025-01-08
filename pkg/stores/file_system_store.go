@@ -354,3 +354,31 @@ func (fs *FileSystemStreamStore) getPartitionDirectoryPath(space string, partiti
 	path := filepath.Join(fs.path, space, partition)
 	return path
 }
+
+func (fs *FileSystemStreamStore) Scavenge(ctx context.Context) error {
+	return fs.scavengeDirectory(fs.path)
+}
+
+func (fs *FileSystemStreamStore) scavengeDirectory(path string) error {
+	entries, err := os.ReadDir(path)
+	if err != nil {
+		return fmt.Errorf("failed to read directory: %w", err)
+	}
+
+	for _, entry := range entries {
+		entryPath := filepath.Join(path, entry.Name())
+		if entry.IsDir() {
+			// Recursively scavenge subdirectory
+			if err := fs.scavengeDirectory(entryPath); err != nil {
+				return err
+			}
+		} else if strings.HasSuffix(entry.Name(), ".tmp") {
+			// Remove .tmp files
+			if err := os.Remove(entryPath); err != nil {
+				return fmt.Errorf("failed to remove file %s: %w", entryPath, err)
+			}
+		}
+	}
+
+	return nil
+}

@@ -66,6 +66,17 @@ func NewService(options *ServiceOptions) Service {
 	storeMap[1] = store
 	storeMap[2] = store
 
+	// Track which stores have been scavenged
+	scavengedStores := make(map[stores.StreamStore]bool)
+
+	// Call Scavenge for each unique store
+	for _, store := range storeMap {
+		if !scavengedStores[store] {
+			store.Scavenge(ctx)
+			scavengedStores[store] = true
+		}
+	}
+
 	s := &serviceImpl{
 		manager:      managers.NewManager(storeMap),
 		cancel:       cancel,

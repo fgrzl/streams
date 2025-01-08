@@ -82,4 +82,7 @@ type StreamStore interface {
 	// Arguments: DeletePartitionArgs - parameters identifying the stream to be deleted.
 	// Returns: error - any error encountered during the deletion of the stream.
 	DeletePartition(ctx context.Context, args *models.DeletePartitionArgs) error
+
+	// Scavenge deletes obsolete pages.
+	Scavenge(ctx context.Context) error
 }
