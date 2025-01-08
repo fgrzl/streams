@@ -18,22 +18,23 @@ type ChannelEnumerator[T any] struct {
 // MoveNext advances the enumerator to the next value in the range.
 // Returns true if more values are available, false otherwise.
 func (e *ChannelEnumerator[T]) MoveNext() bool {
-	select {
-	case <-e.doneCh:
-		return false
-	case err, ok := <-e.errCh:
-		if ok {
-			e.err = err
+	for {
+		select {
+		case <-e.doneCh:
+			return false
+		case err, ok := <-e.errCh:
+			if ok {
+				e.err = err
+				return false
+			}
+		case data, ok := <-e.dataCh:
+			if ok {
+				e.current = data
+				return true
+			}
 			return false
 		}
-	case data, ok := <-e.dataCh:
-		if ok {
-			e.current = data
-			return true
-		}
-		return false
 	}
-	return false
 }
 
 // Current returns the current value and any error encountered.
