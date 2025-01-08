@@ -107,11 +107,11 @@ func (s *implementedWolfServer) CreatePartition(ctx context.Context, req *models
 		return nil, err
 	}
 
-	return s.service.CreatePartition(ctx, &models.CreatePartitionArgs{
-		Tenant:    descriptor.Tenant,
+	args := &models.CreatePartitionArgs{
 		Space:     descriptor.Space,
 		Partition: descriptor.Partition,
-	})
+	}
+	return s.service.CreatePartition(ctx, args)
 }
 
 // GetStatus handles the GetStatus RPC.
@@ -121,11 +121,11 @@ func (s *implementedWolfServer) GetStatus(ctx context.Context, req *models.GetSt
 		return nil, err
 	}
 
-	return s.service.GetStatus(ctx, &models.GetStatusArgs{
-		Tenant:    descriptor.Tenant,
+	args := &models.GetStatusArgs{
 		Space:     descriptor.Space,
 		Partition: descriptor.Partition,
-	})
+	}
+	return s.service.GetStatus(ctx, args)
 }
 
 // Produce handles the Produce bidirectional streaming RPC.
@@ -139,7 +139,6 @@ func (s *implementedWolfServer) Produce(stream grpc.BidiStreamingServer[models.E
 	defer entries.Dispose()
 
 	args := &models.ProduceArgs{
-		Tenant:    headers.Tenant,
 		Space:     headers.Space,
 		Partition: headers.Partition,
 	}
@@ -169,7 +168,6 @@ func (s *implementedWolfServer) Peek(ctx context.Context, req *models.PeekReques
 	}
 
 	args := &models.PeekArgs{
-		Tenant:    headers.Tenant,
 		Space:     headers.Space,
 		Partition: headers.Partition,
 	}
@@ -185,7 +183,6 @@ func (s *implementedWolfServer) ConsumeSpace(req *models.ConsumeSpaceRequest, st
 	}
 
 	args := &models.ConsumeSpaceArgs{
-		Tenant:       headers.Tenant,
 		Space:        headers.Space,
 		Offsets:      req.Offsets,
 		MaxTimestamp: req.MaxTimestamp,
@@ -202,8 +199,8 @@ func (s *implementedWolfServer) ConsumePartition(req *models.ConsumePartitionReq
 	}
 
 	args := &models.ConsumePartitionArgs{
-		Tenant:       headers.Tenant,
 		Space:        headers.Space,
+		Partition:    headers.Partition,
 		MinSequence:  req.MinSequence,
 		MinTimestamp: req.MinTimestamp,
 		MaxSequence:  req.MaxSequence,
@@ -221,7 +218,6 @@ func (s *implementedWolfServer) Merge(req *models.MergeRequest, stream grpc.Serv
 	}
 
 	args := &models.MergeArgs{
-		Tenant:    headers.Tenant,
 		Space:     headers.Space,
 		Partition: headers.Partition,
 		Tier:      req.Tier,
@@ -238,7 +234,6 @@ func (s *implementedWolfServer) Prune(req *models.PruneRequest, stream grpc.Serv
 	}
 
 	args := &models.PruneArgs{
-		Tenant:    headers.Tenant,
 		Space:     headers.Space,
 		Partition: headers.Partition,
 		Tier:      req.Tier,
@@ -255,7 +250,6 @@ func (s *implementedWolfServer) Rebuild(req *models.RebuildRequest, stream grpc.
 	}
 
 	args := &models.RebuildArgs{
-		Tenant:    headers.Tenant,
 		Space:     headers.Space,
 		Partition: headers.Partition,
 		Tier:      req.Tier,
@@ -287,26 +281,24 @@ func logAndReturnGRPCError(logMessage string, err error) error {
 
 // Extracts metadata for SpaceDescriptor.
 func extractSpaceDescriptor(ctx context.Context) (*models.SpaceDescriptor, error) {
-	headers, err := getRequiredHeaders(ctx, "woolf-tenant", "woolf-space")
+	headers, err := getRequiredHeaders(ctx, "woolf-space")
 	if err != nil {
 		return nil, err
 	}
 
 	return &models.SpaceDescriptor{
-		Tenant: headers["woolf-tenant"],
-		Space:  headers["woolf-space"],
+		Space: headers["woolf-space"],
 	}, nil
 }
 
 // Extracts metadata for PartitionDescriptor.
 func extractPartitionDescriptor(ctx context.Context) (*models.PartitionDescriptor, error) {
-	headers, err := getRequiredHeaders(ctx, "woolf-tenant", "woolf-space", "woolf-stream")
+	headers, err := getRequiredHeaders(ctx, "woolf-space", "woolf-stream")
 	if err != nil {
 		return nil, err
 	}
 
 	return &models.PartitionDescriptor{
-		Tenant:    headers["woolf-tenant"],
 		Space:     headers["woolf-space"],
 		Partition: headers["woolf-stream"],
 	}, nil

@@ -54,11 +54,11 @@ func ClientTest_CreatePartition(t *testing.T) {
 	// Arrange
 	ctx, client := setupTestServer(t)
 	t.Run("should create partition", func(t *testing.T) {
-		tenant := "tenant_" + uuid.NewString()
+
 		space := "space_" + uuid.NewString()
 		stream := "partition_" + uuid.NewString()
 
-		args := &models.CreatePartitionArgs{Tenant: tenant, Space: space, Partition: stream}
+		args := &models.CreatePartitionArgs{Space: space, Partition: stream}
 
 		// Act
 		resp, err := client.CreatePartition(ctx, args)
@@ -77,10 +77,9 @@ func TestGetStatus(t *testing.T) {
 	t.Run("should return err when stream does not exists", func(t *testing.T) {
 		// Arrange
 
-		tenant := "tenant_" + uuid.NewString()
 		space := "space_" + uuid.NewString()
 		stream := "partition_" + uuid.NewString()
-		args := &models.GetStatusArgs{Tenant: tenant, Space: space, Partition: stream}
+		args := &models.GetStatusArgs{Space: space, Partition: stream}
 
 		// Act
 		resp, err := client.GetStatus(ctx, args)
@@ -92,13 +91,13 @@ func TestGetStatus(t *testing.T) {
 
 	t.Run("should return ok when stream exists", func(t *testing.T) {
 		// Arrange
-		tenant := "tenant_" + uuid.NewString()
+
 		space := "space_" + uuid.NewString()
 		stream := "partition_" + uuid.NewString()
-		_, err := client.CreatePartition(ctx, &models.CreatePartitionArgs{Tenant: tenant, Space: space, Partition: stream})
+		_, err := client.CreatePartition(ctx, &models.CreatePartitionArgs{Space: space, Partition: stream})
 		require.NoError(t, err)
 
-		args := &models.GetStatusArgs{Tenant: tenant, Space: space, Partition: stream}
+		args := &models.GetStatusArgs{Space: space, Partition: stream}
 
 		// Act
 		resp, err := client.GetStatus(ctx, args)
@@ -116,14 +115,13 @@ func TestProduceIntegration(t *testing.T) {
 	ctx, client := setupTestServer(t)
 
 	count := 275_000
-	tenant := "tenant_" + uuid.NewString()
+
 	space := "space_" + uuid.NewString()
 	stream := "partition_" + uuid.NewString()
-	_, err := client.CreatePartition(ctx, &models.CreatePartitionArgs{Tenant: tenant, Space: space, Partition: stream})
+	_, err := client.CreatePartition(ctx, &models.CreatePartitionArgs{Space: space, Partition: stream})
 	require.NoError(t, err)
 
 	args := &models.ProduceArgs{
-		Tenant:    tenant,
 		Space:     space,
 		Partition: stream,
 	}

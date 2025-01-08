@@ -14,7 +14,7 @@ type Manager interface {
 	util.Disposable
 	GetTiers() []int32
 	GetStore(tier int32) stores.StreamStore
-	GetManifestRepository(tenantKey string, spaceKey string, partitionKey string, tier int32) repositories.ManifestRepository
+	GetManifestRepository(spaceKey string, partitionKey string, tier int32) repositories.ManifestRepository
 }
 
 func NewManager(stores map[int32]stores.StreamStore) Manager {
@@ -49,13 +49,13 @@ func (mm *manager) GetStore(tier int32) stores.StreamStore {
 	return mm.stores[tier]
 }
 
-func (mm *manager) GetManifestRepository(tenantKey string, spaceKey string, partitionKey string, tier int32) repositories.ManifestRepository {
+func (mm *manager) GetManifestRepository(space string, partition string, tier int32) repositories.ManifestRepository {
 
 	key := repositories.ManifestKey{
-		Tenant:    tenantKey,
-		Space:     spaceKey,
-		Partition: partitionKey,
-		Tier:      tier}
+		Space:     space,
+		Partition: partition,
+		Tier:      tier,
+	}
 
 	// Try to load the value
 	if value, ok := mm.registry.Load(key); ok {

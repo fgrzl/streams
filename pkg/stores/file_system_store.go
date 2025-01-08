@@ -36,12 +36,12 @@ func NewFileSystemStore() StreamStore {
 }
 
 func (fs *FileSystemStreamStore) CreateTier(ctx context.Context, args *models.CreateTierArgs) error {
-	tierPath := fs.getTierDirectoryPath(args.Tenant, args.Space, args.Partition, args.Tier)
+	tierPath := fs.getTierDirectoryPath(args.Space, args.Partition, args.Tier)
 	return os.MkdirAll(tierPath, 0755)
 }
 
 func (fs *FileSystemStreamStore) GetSpaces(ctx context.Context, args *models.GetSpacesArgs) enumerators.Enumerator[string] {
-	path := fs.getTenantDirectoryPath(args.Tenant)
+	path := fs.path
 	buf, err := os.ReadDir(path)
 	if err != nil {
 		return enumerators.Error[string](err)
@@ -60,7 +60,7 @@ func (fs *FileSystemStreamStore) GetSpaces(ctx context.Context, args *models.Get
 }
 
 func (fs *FileSystemStreamStore) GetPartitions(ctx context.Context, args *models.GetPartitionsArgs) enumerators.Enumerator[string] {
-	path := fs.getSpaceDirectoryPath(args.Tenant, args.Space)
+	path := fs.getSpaceDirectoryPath(args.Space)
 	buf, err := os.ReadDir(path)
 	if err != nil {
 		return enumerators.Error[string](err)
@@ -80,7 +80,7 @@ func (fs *FileSystemStreamStore) GetPartitions(ctx context.Context, args *models
 
 func (fs *FileSystemStreamStore) GetPages(ctx context.Context, args *models.GetPagesArgs) enumerators.Enumerator[int32] {
 	// Get the directory path for the tier
-	dir := fs.getTierDirectoryPath(args.Tenant, args.Space, args.Partition, args.Tier)
+	dir := fs.getTierDirectoryPath(args.Space, args.Partition, args.Tier)
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return enumerators.Error[int32](err)
@@ -124,7 +124,7 @@ func (fs *FileSystemStreamStore) GetPages(ctx context.Context, args *models.GetP
 // DeletePartition deletes the entire stream directory
 func (fs *FileSystemStreamStore) DeleteSpace(ctx context.Context, args *models.DeleteSpaceArgs) error {
 
-	path := fs.getSpaceDirectoryPath(args.Tenant, args.Space)
+	path := fs.getSpaceDirectoryPath(args.Space)
 	err := os.RemoveAll(path)
 	if err != nil {
 		return fmt.Errorf("failed to remove stream directory: %w", err)
@@ -135,7 +135,7 @@ func (fs *FileSystemStreamStore) DeleteSpace(ctx context.Context, args *models.D
 // DeletePartition deletes the entire stream directory
 func (fs *FileSystemStreamStore) DeletePartition(ctx context.Context, args *models.DeletePartitionArgs) error {
 
-	path := fs.getPartitionDirectoryPath(args.Tenant, args.Space, args.Partition)
+	path := fs.getPartitionDirectoryPath(args.Space, args.Partition)
 	err := os.RemoveAll(path)
 	if err != nil {
 		return fmt.Errorf("failed to remove stream directory: %w", err)
@@ -146,7 +146,7 @@ func (fs *FileSystemStreamStore) DeletePartition(ctx context.Context, args *mode
 // WriteManifest writes the manifest for a stream
 func (fs *FileSystemStreamStore) WriteManifest(ctx context.Context, args *models.WriteManifestArgs) (models.ConcurrencyTag, error) {
 
-	tierPath := fs.getTierDirectoryPath(args.Tenant, args.Space, args.Partition, args.Tier)
+	tierPath := fs.getTierDirectoryPath(args.Space, args.Partition, args.Tier)
 	fileName := fs.getManifestFilePath(tierPath)
 
 	var isNew bool
@@ -203,7 +203,7 @@ func (fs *FileSystemStreamStore) ReadManifest(ctx context.Context, args *models.
 	wrapper := &models.ManifestWrapper{}
 
 	// Get the file path
-	tierPath := fs.getTierDirectoryPath(args.Tenant, args.Space, args.Partition, args.Tier)
+	tierPath := fs.getTierDirectoryPath(args.Space, args.Partition, args.Tier)
 	fileName := fs.getManifestFilePath(tierPath)
 
 	// Use os.Stat to check if the file exists and get file info in one go
@@ -247,7 +247,7 @@ func (fs *FileSystemStreamStore) ReadManifest(ctx context.Context, args *models.
 // WriteRecords writes records to a page file
 func (fs *FileSystemStreamStore) WritePage(ctx context.Context, args *models.WritePageArgs, entries enumerators.Enumerator[*models.Entry]) (*models.Page, error) {
 	// Determine the file paths
-	tierPath := fs.getTierDirectoryPath(args.Tenant, args.Space, args.Partition, args.Tier)
+	tierPath := fs.getTierDirectoryPath(args.Space, args.Partition, args.Tier)
 	fileName := fs.getPageFilePath(tierPath, args.Number)
 
 	// Create a temporary file
@@ -305,7 +305,7 @@ func (fs *FileSystemStreamStore) WritePage(ctx context.Context, args *models.Wri
 
 func (fs *FileSystemStreamStore) ReadPage(ctx context.Context, args *models.ReadPageArgs) enumerators.Enumerator[*models.Entry] {
 
-	tierPath := fs.getTierDirectoryPath(args.Tenant, args.Space, args.Partition, args.Tier)
+	tierPath := fs.getTierDirectoryPath(args.Space, args.Partition, args.Tier)
 	filePath := fs.getPageFilePath(tierPath, args.Number)
 
 	file, err := os.Open(filePath)
@@ -317,7 +317,7 @@ func (fs *FileSystemStreamStore) ReadPage(ctx context.Context, args *models.Read
 
 // DeletePage deletes a page file
 func (fs *FileSystemStreamStore) DeletePage(ctx context.Context, args *models.DeletePageArgs) error {
-	tierPath := fs.getTierDirectoryPath(args.Tenant, args.Space, args.Partition, args.Tier)
+	tierPath := fs.getTierDirectoryPath(args.Space, args.Partition, args.Tier)
 	filePath := fs.getPageFilePath(tierPath, args.Number)
 	err := os.Remove(filePath)
 	if err != nil {
@@ -340,22 +340,17 @@ func (fs *FileSystemStreamStore) getManifestFilePath(tierPath string) string {
 	return filepath.Join(tierPath, ".manifest")
 }
 
-func (fs *FileSystemStreamStore) getTierDirectoryPath(tenant string, space string, partition string, tier int32) string {
-	path := filepath.Join(fs.path, tenant, space, partition, fmt.Sprintf("%d", tier))
+func (fs *FileSystemStreamStore) getTierDirectoryPath(space string, partition string, tier int32) string {
+	path := filepath.Join(fs.path, space, partition, fmt.Sprintf("%d", tier))
 	return path
 }
 
-func (fs *FileSystemStreamStore) getTenantDirectoryPath(tenant string) string {
-	path := filepath.Join(fs.path, tenant)
+func (fs *FileSystemStreamStore) getSpaceDirectoryPath(space string) string {
+	path := filepath.Join(fs.path, space)
 	return path
 }
 
-func (fs *FileSystemStreamStore) getSpaceDirectoryPath(tenant string, space string) string {
-	path := filepath.Join(fs.path, tenant, space)
-	return path
-}
-
-func (fs *FileSystemStreamStore) getPartitionDirectoryPath(tenant string, space string, partition string) string {
-	path := filepath.Join(fs.path, tenant, space, partition)
+func (fs *FileSystemStreamStore) getPartitionDirectoryPath(space string, partition string) string {
+	path := filepath.Join(fs.path, space, partition)
 	return path
 }

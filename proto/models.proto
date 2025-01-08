@@ -2,164 +2,356 @@ syntax = "proto3";
 
 package woolf;
 
+//
+// Core Descriptors
+//
+
 // Descriptor for a space
 message SpaceDescriptor {
-  // The tenant owning the space
-  string tenant = 1;
-
-  // The name of the space
-  string space = 2;
+    // The unique identifier of the space, used to organize related partitions
+    string space = 1;
 }
 
 // Descriptor for a partition
 message PartitionDescriptor {
-  // The tenant owning the partition
-  string tenant = 1;
+    // The unique identifier of the space this partition belongs to
+    string space = 1;
 
-  // The name of the space containing the partition
-  string space = 2;
-
-  // The name of the partition
-  string partition = 3;
+    // The unique identifier of the partition within the space
+    string partition = 2;
 }
 
 // Descriptor for a tier within a partition
 message TierDescriptor {
-  // The tenant owning the tier
-  string tenant = 1;
+    // The unique identifier of the space this tier belongs to
+    string space = 1;
 
-  // The name of the space containing the tier
-  string space = 2;
+    // The unique identifier of the partition this tier belongs to
+    string partition = 2;
 
-  // The name of the partition containing the tier
-  string partition = 3;
-
-  // The tier level
-  int32 tier = 4;
+    // The numerical level of the tier, where lower numbers indicate more recent data
+    int32 tier = 3;
 }
 
 // Descriptor for a page within a partition/tier
 message PageDescriptor {
-  // The tenant owning the page
-  string tenant = 1;
+    // The unique identifier of the space this page belongs to
+    string space = 1;
 
-  // The name of the space containing the page
-  string space = 2;
+    // The unique identifier of the partition this page belongs to
+    string partition = 2;
 
-  // The name of the partition containing the page
-  string partition = 3;
+    // The numerical level of the tier containing this page
+    int32 tier = 3;
 
-  // The tier containing the page
-  int32 tier = 4;
+    // The sequential page number within the tier
+    int32 number = 4;
 
-  // The number of the page
-  int32 number = 5;
+    // The sequence number of the first entry stored in this page
+    uint64 first_sequence = 5;
 
-  // The sequence number of the first entry in the page
-  uint64 first_sequence = 6;
+    // The timestamp of the first entry stored in this page (in milliseconds since epoch)
+    int64 first_timestamp = 6;
 
-  // The timestamp of the first entry in the page
-  int64 first_timestamp = 7;
+    // The sequence number of the last entry stored in this page
+    uint64 last_sequence = 7;
 
-  // The sequence number of the last entry in the page
-  uint64 last_sequence = 8;
+    // The timestamp of the last entry stored in this page (in milliseconds since epoch)
+    int64 last_timestamp = 8;
 
-  // The timestamp of the last entry in the page
-  int64 last_timestamp = 9;
+    // The total number of entries stored in this page
+    int32 count = 9;
 
-  // The number of entries in the page
-  int32 count = 10;
-
-  // The size of the page
-  int64 size = 11;
+    // The total size of the page in bytes
+    int64 size = 10;
 }
+
+//
+// Data Structures
+//
 
 // A message representing an entry in the system
 message Entry {
-  // The logical sequence number of the entry
-  uint64 sequence = 1;
+    // A monotonically increasing number that defines the order of entries
+    uint64 sequence = 1;
 
-  // The monotonic timestamp of the entry
-  int64 timestamp = 2;
+    // The timestamp when the entry was created (in milliseconds since epoch)
+    int64 timestamp = 2;
 
-  // The unique entry ID, used for idempotency (16 bytes required)
-  bytes entry_id = 3;
+    // A unique identifier for this entry, used for deduplication (16 bytes)
+    bytes entry_id = 3;
 
-  // The correlation ID, assigned if not provided (16 bytes required)
-  bytes correlation_id = 4;
+    // An identifier linking related entries together (16 bytes)
+    bytes correlation_id = 4;
 
-  // The causation ID, assigned if not provided (16 bytes required)
-  bytes causation_id = 5;
+    // An identifier tracking the cause-and-effect relationship between entries (16 bytes)
+    bytes causation_id = 5;
 
-  // The payload of the entry
-  bytes payload = 6;
+    // The actual data content of the entry
+    bytes payload = 6;
 
-  // Additional metadata for the entry (optional)
-  map<string, string> metadata = 7;
+    // Additional key-value pairs for storing custom metadata
+    map<string, string> metadata = 7;
 }
 
 // Offset structure used for tracking position in a stream
 message Offset {
-  // The sequence number for the offset
-  uint64 sequence = 1;
+    // The sequence number for the offset
+    uint64 sequence = 1;
 
-  // The timestamp for the offset
-  int64 timestamp = 2;
+    // The timestamp for the offset
+    int64 timestamp = 2;
 }
 
 // Envelope that includes a partition descriptor and an entry
 message EntryEnvelope {
-  // The descriptor of the partition containing the entry
-  PartitionDescriptor partition_descriptor = 1;
+    // The descriptor of the partition containing the entry
+    PartitionDescriptor partition_descriptor = 1;
 
-  // The entry data
-  Entry entry = 2;
+    // The entry data
+    Entry entry = 2;
 }
+
+//
+// Page Management
+//
 
 // A page containing multiple entries and an index for efficient access
 message Page {
-  // The page number
-  int32 number = 1;
+    // The page number
+    int32 number = 1;
 
-  // The sequence number of the first entry in the page
-  uint64 first_sequence = 2;
+    // The sequence number of the first entry in the page
+    uint64 first_sequence = 2;
 
-  // The timestamp of the first entry in the page
-  int64 first_timestamp = 3;
+    // The timestamp of the first entry in the page
+    int64 first_timestamp = 3;
 
-  // The sequence number of the last entry in the page
-  uint64 last_sequence = 4;
+    // The sequence number of the last entry in the page
+    uint64 last_sequence = 4;
 
-  // The timestamp of the last entry in the page
-  int64 last_timestamp = 5;
+    // The timestamp of the last entry in the page
+    int64 last_timestamp = 5;
 
-  // The number of entries in the page
-  int32 count = 6;
+    // The number of entries in the page
+    int32 count = 6;
 
-  // The size of the page
-  int64 size = 7;
+    // The size of the page
+    int64 size = 7;
 
-  // A sparse index of sequences to positions in the IO stream
-  repeated PageIndexEntry index = 8;
+    // A sparse index of sequences to positions in the IO stream
+    repeated PageIndexEntry index = 8;
 }
 
 // Index entry for efficient sequence lookup in a page
 message PageIndexEntry {
-  // The sequence number for this index entry
-  uint64 sequence = 1;
+    // The sequence number for this index entry
+    uint64 sequence = 1;
 
-  // The position of the sequence in the stream
-  int64 position = 2;
+    // The position of the sequence in the stream
+    int64 position = 2;
 }
 
 // Manifest for managing multiple pages
 message Manifest {
-  // The list of pages in the manifest
-  repeated Page pages = 1;
+    // The list of pages in the manifest
+    repeated Page pages = 1;
 
-  // The last page in the manifest
-  Page last_page = 2;
+    // The last page in the manifest
+    Page last_page = 2;
 }
+
+//
+// Operation Arguments
+//
+
+// Arguments for space operations
+message GetSpacesArgs {
+    // The unique identifier of the space to retrieve (empty for all spaces)
+    string space = 1;
+}
+
+message DeleteSpaceArgs {
+    // The unique identifier of the space to delete
+    string space = 1;
+}
+
+// Arguments for partition operations
+message GetPartitionsArgs {
+    // The unique identifier of the space containing the partitions
+    string space = 1;
+    // The specific partition to retrieve (empty for all partitions)
+    string partition = 2;
+}
+
+message GetPartitionArgs {
+    // The unique identifier of the space containing the partition
+    string space = 1;
+    // The unique identifier of the partition to retrieve
+    string partition = 2;
+}
+
+message CreatePartitionArgs {
+    // The unique identifier of the space where the partition will be created
+    string space = 1;
+    // The unique identifier for the new partition
+    string partition = 2;
+}
+
+message DeletePartitionArgs {
+    // The unique identifier of the space containing the partition
+    string space = 1;
+    // The unique identifier of the partition to delete
+    string partition = 2;
+}
+
+// Arguments for tier operations
+message CreateTierArgs {
+    // The unique identifier of the space containing the partition
+    string space = 1;
+    // The unique identifier of the partition where the tier will be created
+    string partition = 2;
+    // The numerical level of the new tier (lower numbers indicate more recent data)
+    int32 tier = 3;
+}
+
+// Arguments for data operations
+message ProduceArgs {
+    // The unique identifier of the space containing the partition
+    string space = 1;
+    // The unique identifier of the partition to produce entries to
+    string partition = 2;
+    // The strategy to use for producing entries (e.g., "append", "upsert")
+    string strategy = 3;
+    // The list of entries to produce
+    repeated Entry entries = 4;
+}
+
+message ConsumeSpaceArgs {
+    // The unique identifier of the space to consume from
+    string space = 1;
+    // Map of partition offsets to start consuming from
+    map<string, Offset> offsets = 2;
+    // The minimum timestamp to include in consumption (in milliseconds since epoch)
+    int64 min_timestamp = 3;
+    // The maximum sequence number to include in consumption
+    uint64 max_sequence = 4;
+    // The maximum timestamp to include in consumption (in milliseconds since epoch)
+    int64 max_timestamp = 5;
+}
+
+message ConsumePartitionArgs {
+    // The unique identifier of the space containing the partition
+    string space = 1;
+    // The unique identifier of the partition to consume from
+    string partition = 2;
+    // The minimum sequence number to start consuming from (exclusive)
+    uint64 min_sequence = 3;
+    // The minimum timestamp to include in consumption (in milliseconds since epoch)
+    int64 min_timestamp = 4;
+    // The maximum sequence number to include in consumption (inclusive)
+    uint64 max_sequence = 5;
+    // The maximum timestamp to include in consumption (in milliseconds since epoch)
+    int64 max_timestamp = 6;
+}
+
+message PeekArgs {
+    // The unique identifier of the space containing the partition
+    string space = 1;
+    // The unique identifier of the partition to peek at
+    string partition = 2;
+}
+
+// Arguments for maintenance operations
+message MergeArgs {
+    // The unique identifier of the space containing the partition
+    string space = 1;
+    // The unique identifier of the partition to merge
+    string partition = 2;
+    // The numerical level of the tier to merge
+    int32 tier = 3;
+}
+
+message PruneArgs {
+    // The unique identifier of the space containing the partition
+    string space = 1;
+    // The unique identifier of the partition to prune
+    string partition = 2;
+    // The numerical level of the tier to prune
+    int32 tier = 3;
+}
+
+message RebuildArgs {
+    // The unique identifier of the space containing the partition
+    string space = 1;
+    // The unique identifier of the partition to rebuild
+    string partition = 2;
+    // The numerical level of the tier to rebuild
+    int32 tier = 3;
+}
+
+// Arguments for page operations
+message ReadPageArgs {
+    // The unique identifier of the space containing the partition
+    string space = 1;
+    // The unique identifier of the partition containing the page
+    string partition = 2;
+    // The numerical level of the tier containing the page
+    int32 tier = 3;
+    // The sequential page number to read
+    int32 number = 4;
+    // The position within the page to start reading from
+    int64 position = 5;
+}
+
+message WritePageArgs {
+    // The unique identifier of the space containing the partition
+    string space = 1;
+    // The unique identifier of the partition to write to
+    string partition = 2;
+    // The numerical level of the tier to write to
+    int32 tier = 3;
+    // The sequential page number to write
+    int32 number = 4;
+    // The minimum size a page should be in bytes
+    int64 min_page_size = 5;
+    // The maximum size a page can be in bytes
+    int64 max_page_size = 6;
+    // The entries to write to the page
+    repeated Entry entries = 7;
+}
+
+message DeletePageArgs {
+    // The unique identifier of the space containing the partition
+    string space = 1;
+    // The unique identifier of the partition containing the page
+    string partition = 2;
+    // The numerical level of the tier containing the page
+    int32 tier = 3;
+    // The sequential page number to delete
+    int32 number = 4;
+}
+
+message GetPagesArgs {
+    // The unique identifier of the space containing the partition
+    string space = 1;
+    // The unique identifier of the partition to get pages from
+    string partition = 2;
+    // The numerical level of the tier to get pages from
+    int32 tier = 3;
+}
+
+// Arguments for status operations
+message GetStatusArgs {
+    // The unique identifier of the space to check status for
+    string space = 1;
+    // The unique identifier of the partition to check status for
+    string partition = 2;
+}
+
+//
+// Operation Requests/Responses
+//
 
 // Request to get spaces
 message GetSpacesRequest {}
@@ -172,8 +364,8 @@ message GetStatusRequest {}
 
 // Response with status message
 message StatusResponse {
-  // The status message
-  string message = 1;
+    // The status message
+    string message = 1;
 }
 
 // Request to create a partition
@@ -184,218 +376,64 @@ message PeekRequest {}
 
 // Request to consume entries from a space
 message ConsumeSpaceRequest {
-  // Offsets for each stream in the space
-  map<string, Offset> offsets = 1;
+    // Offsets for each stream in the space
+    map<string, Offset> offsets = 1;
 
-  // The minimum timestamp inclusive
-  int64 min_timestamp = 2;
+    // The minimum timestamp inclusive
+    int64 min_timestamp = 2;
 
-  // The maximum timestamp inclusive
-  int64 max_timestamp = 4;
+    // The maximum timestamp inclusive
+    int64 max_timestamp = 4;
 }
 
 // Request to consume entries from a partition
 message ConsumePartitionRequest {
-  // The partition to consume
-  string partition = 1;
+    // The partition to consume
+    string partition = 1;
 
-  // The minimum sequence exclusive (optional)
-  uint64 min_sequence = 2;
+    // The minimum sequence exclusive (optional)
+    uint64 min_sequence = 2;
 
-  // The minimum timestamp inclusive (optional)
-  int64 min_timestamp = 3;
+    // The minimum timestamp inclusive (optional)
+    int64 min_timestamp = 3;
 
-  // The maximum sequence inclusive (optional)
-  uint64 max_sequence = 4;
+    // The maximum sequence inclusive (optional)
+    uint64 max_sequence = 4;
 
-  // The maximum timestamp inclusive (optional)
-  int64 max_timestamp = 5;
+    // The maximum timestamp inclusive (optional)
+    int64 max_timestamp = 5;
 }
 
 // Request to merge a partition at a specific tier
 message MergeRequest {
-  // The tier to merge
-  int32 tier = 1;
+    // The tier to merge
+    int32 tier = 1;
 }
 
 // Request to rebuild a partition at a specific tier
 message RebuildRequest {
-  // The tier to rebuild
-  int32 tier = 1;
+    // The tier to rebuild
+    int32 tier = 1;
 }
 
 // Response for a rebuild operation
 message RebuildResponse {
-  // The partition being rebuilt
-  string partition = 1;
+    // The partition being rebuilt
+    string partition = 1;
 
-  // The tier being rebuilt
-  int32 tier = 2;
+    // The tier being rebuilt
+    int32 tier = 2;
 
-  // The number of pages rebuilt
-  int32 page_count = 3;
+    // The number of pages rebuilt
+    int32 page_count = 3;
 }
 
 // Request to prune a partition at a specific tier
 message PruneRequest {
-  // The tier to prune
-  int32 tier = 1;
+    // The tier to prune
+    int32 tier = 1;
 }
 
-
-// Arguments for GetSpaces operation
-message GetSpacesArgs {
-    string tenant = 1;
-}
-
-// Arguments for GetPartitions operation
-message GetPartitionsArgs {
-    string tenant = 1;
-    string space = 2;
-}
-
-// Arguments for GetPartition operation
-message GetPartitionArgs {
-    string tenant = 1;
-    string space = 2;
-    string partition = 3;
-}
-
-// Arguments for CreatePartition operation
-message CreatePartitionArgs {
-    string tenant = 1;
-    string space = 2;
-    string partition = 3;
-}
-
-// Arguments for CreateTier operation
-message CreateTierArgs {
-    string tenant = 1;
-    string space = 2;
-    string partition = 3;
-    int32 tier = 4;
-}
-
-// Arguments for Produce operation
-message ProduceArgs {
-    string tenant = 1;
-    string space = 2;
-    string partition = 3;
-    string strategy = 4;
-    repeated Entry entries = 5;
-}
-
-// Arguments for Merge operation
-message MergeArgs {
-    string tenant = 1;
-    string space = 2;
-    string partition = 3;
-    int32 tier = 4;
-}
-
-// Arguments for Prune operation
-message PruneArgs {
-    string tenant = 1;
-    string space = 2;
-    string partition = 3;
-    int32 tier = 4;
-}
-
-// Arguments for Rebuild operation
-message RebuildArgs {
-    string tenant = 1;
-    string space = 2;
-    string partition = 3;
-    int32 tier = 4;
-}
-
-// Arguments for GetStatus operation
-message GetStatusArgs {
-    string tenant = 1;
-    string space = 2;
-    string partition = 3;
-}
-
-// Arguments for ConsumeSpace operation
-message ConsumeSpaceArgs {
-    string tenant = 1;
-    string space = 2;
-    map<string, Offset> offsets = 3;
-    int64 min_timestamp = 4;
-    uint64 max_sequence = 5;
-    int64 max_timestamp = 6;
-}
-
-// Arguments for ConsumePartition operation
-message ConsumePartitionArgs {
-    string tenant = 1;
-    string space = 2;
-    string partition = 3;
-    uint64 min_sequence = 4;
-    int64 min_timestamp = 5;
-    uint64 max_sequence = 6;
-    int64 max_timestamp = 7;
-}
-
-// Arguments for Peek operation
-message PeekArgs {
-    string tenant = 1;
-    string space = 2;
-    string partition = 3;
-}
-
-// Arguments for ReadPage operation
-message ReadPageArgs {
-    string tenant = 1;
-    string space = 2;
-    string partition = 3;
-    int32 tier = 4;
-    int32 number = 5;
-    int64 position = 6;
-}
-
-// Arguments for DeletePage operation
-message DeletePageArgs {
-    string tenant = 1;
-    string space = 2;
-    string partition = 3;
-    int32 tier = 4;
-    int32 number = 5;
-}
-
-// Arguments for GetPages operation
-message GetPagesArgs {
-    string tenant = 1;
-    string space = 2;
-    string partition = 3;
-    int32 tier = 4;
-}
-
-// Arguments for WritePage operation
-message WritePageArgs {
-    string tenant = 1;
-    string space = 2;
-    string partition = 3;
-    int32 tier = 4;
-    int32 number = 5;
-    int64 min_page_size = 6;
-    int64 max_page_size = 7;
-    repeated Entry entries = 8;
-}
-
-// Arguments for DeleteSpace operation
-message DeleteSpaceArgs {
-    string tenant = 1;
-    string space = 2;
-    string partition = 3;
-}
-
-// Arguments for DeletePartition operation
-message DeletePartitionArgs {
-    string tenant = 1;
-    string space = 2;
-    string partition = 3;
-}
 
 
 

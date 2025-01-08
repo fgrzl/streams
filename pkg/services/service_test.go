@@ -45,9 +45,8 @@ func setupService(t *testing.T) (context.Context, services.Service) {
 	return ctx, service
 }
 
-func setupPartition(t *testing.T, ctx context.Context, service services.Service, tenant string, space string, partition string, count int) {
+func setupPartition(t *testing.T, ctx context.Context, service services.Service, space string, partition string, count int) {
 	createPartitionArgs := &models.CreatePartitionArgs{
-		Tenant:    tenant,
 		Space:     space,
 		Partition: partition,
 	}
@@ -56,13 +55,12 @@ func setupPartition(t *testing.T, ctx context.Context, service services.Service,
 	require.NotNil(t, response)
 
 	if count > 0 {
-		produce(t, ctx, service, tenant, space, partition, 0, count)
+		produce(t, ctx, service, space, partition, 0, count)
 	}
 }
 
-func produce(t *testing.T, ctx context.Context, service services.Service, tenant string, space string, partition string, seed int, count int) {
+func produce(t *testing.T, ctx context.Context, service services.Service, space string, partition string, seed int, count int) {
 	produceArgs := &models.ProduceArgs{
-		Tenant:    tenant,
 		Space:     space,
 		Partition: partition,
 	}
@@ -80,12 +78,10 @@ func TestService_CreatePartition(t *testing.T) {
 
 	t.Run("should create a partition if it does not exist", func(t *testing.T) {
 		// Arrange
-		tenant := "t_" + uuid.NewString()
 		space := "s_" + uuid.NewString()
 		partition := "p_" + uuid.NewString()
 
 		args := &models.CreatePartitionArgs{
-			Tenant:    tenant,
 			Space:     space,
 			Partition: partition,
 		}
@@ -98,35 +94,12 @@ func TestService_CreatePartition(t *testing.T) {
 		assert.NotNil(t, response)
 	})
 
-	t.Run("should not create a partition with invalid tenant", func(t *testing.T) {
-		// Arrange
-		tenant := ""
-		space := "s_" + uuid.NewString()
-		partition := "p_" + uuid.NewString()
-
-		args := &models.CreatePartitionArgs{
-			Tenant:    tenant,
-			Space:     space,
-			Partition: partition,
-		}
-
-		// Act
-		response, err := service.CreatePartition(ctx, args)
-
-		// Assert
-		assert.Error(t, err)
-		assert.Equal(t, "invalid tenant", err.Error())
-		assert.Nil(t, response)
-	})
-
 	t.Run("should not create a partition with invalid space", func(t *testing.T) {
 		// Arrange
-		tenant := "t_" + uuid.NewString()
 		space := ""
 		partition := "p_" + uuid.NewString()
 
 		args := &models.CreatePartitionArgs{
-			Tenant:    tenant,
 			Space:     space,
 			Partition: partition,
 		}
@@ -140,14 +113,12 @@ func TestService_CreatePartition(t *testing.T) {
 		assert.Nil(t, response)
 	})
 
-	t.Run("should not create a partition with invalid partiton", func(t *testing.T) {
+	t.Run("should not create a partition with invalid partition", func(t *testing.T) {
 		// Arrange
-		tenant := "t_" + uuid.NewString()
 		space := "s_" + uuid.NewString()
 		partition := ""
 
 		args := &models.CreatePartitionArgs{
-			Tenant:    tenant,
 			Space:     space,
 			Partition: partition,
 		}
@@ -165,21 +136,17 @@ func TestService_CreatePartition(t *testing.T) {
 func TestService_GetSpaces(t *testing.T) {
 	ctx, service := setupService(t)
 
-	t.Run("should get all spaces in the tenant", func(t *testing.T) {
+	t.Run("should get all spaces", func(t *testing.T) {
 		// Arrange
-		tenant := "t_" + uuid.NewString()
-
 		for s := 0; s < 13; s++ {
 			space := fmt.Sprintf("s_%d", s)
 			for p := 0; p < 29; p++ {
 				partition := "p_" + uuid.NewString()
-				setupPartition(t, ctx, service, tenant, space, partition, 0)
+				setupPartition(t, ctx, service, space, partition, 0)
 			}
 		}
 
-		args := &models.GetSpacesArgs{
-			Tenant: tenant,
-		}
+		args := &models.GetSpacesArgs{}
 
 		// Act
 		enumerator := service.GetSpaces(ctx, args)
@@ -190,22 +157,21 @@ func TestService_GetSpaces(t *testing.T) {
 		assert.Equal(t, 13, len(spaces))
 	})
 }
+
 func TestService_GetPartitions(t *testing.T) {
 	ctx, service := setupService(t)
 
 	t.Run("should get all partitions in the space", func(t *testing.T) {
 		// Arrange
-		tenant := "t_" + uuid.NewString()
 		space := "s_" + uuid.NewString()
 
 		for p := 0; p < 29; p++ {
 			partition := fmt.Sprintf("p_%010d", p)
-			setupPartition(t, ctx, service, tenant, space, partition, 0)
+			setupPartition(t, ctx, service, space, partition, 0)
 		}
 
 		args := &models.GetPartitionsArgs{
-			Tenant: tenant,
-			Space:  space,
+			Space: space,
 		}
 
 		// Act
@@ -217,7 +183,6 @@ func TestService_GetPartitions(t *testing.T) {
 		assert.Equal(t, 29, len(partitions))
 
 		last := partitions[len(partitions)-1]
-		assert.Equal(t, tenant, last.Tenant)
 		assert.Equal(t, space, last.Space)
 		assert.Equal(t, "p_0000000028", last.Partition)
 
@@ -229,14 +194,12 @@ func TestService_GetStatus(t *testing.T) {
 
 	t.Run("should get the status", func(t *testing.T) {
 		// Arrange
-		tenant := "t_" + uuid.NewString()
 		space := "s_" + uuid.NewString()
 		partition := "p_" + uuid.NewString()
 
-		setupPartition(t, ctx, service, tenant, space, partition, 10_000)
+		setupPartition(t, ctx, service, space, partition, 10_000)
 
 		args := &models.GetStatusArgs{
-			Tenant:    tenant,
 			Space:     space,
 			Partition: partition,
 		}
@@ -252,12 +215,10 @@ func TestService_GetStatus(t *testing.T) {
 
 	t.Run("should not get the status when does not exist", func(t *testing.T) {
 		// Arrange
-		tenant := "t_" + uuid.NewString()
 		space := "s_" + uuid.NewString()
 		partition := "p_" + uuid.NewString()
 
 		args := &models.GetStatusArgs{
-			Tenant:    tenant,
 			Space:     space,
 			Partition: partition,
 		}
@@ -277,12 +238,10 @@ func TestService_Peek(t *testing.T) {
 
 	t.Run("should not peek when not exists", func(t *testing.T) {
 		// Arrange
-		tenant := "t_" + uuid.NewString()
 		space := "s_" + uuid.NewString()
 		partition := "p_" + uuid.NewString()
 
 		args := &models.PeekArgs{
-			Tenant:    tenant,
 			Space:     space,
 			Partition: partition,
 		}
@@ -298,15 +257,13 @@ func TestService_Peek(t *testing.T) {
 
 	t.Run("should peek the last entry", func(t *testing.T) {
 		// Arrange
-		tenant := "t_" + uuid.NewString()
 		space := "s_" + uuid.NewString()
 		partition := "p_" + uuid.NewString()
 		count := rand.Intn(10_000)
 
-		setupPartition(t, ctx, service, tenant, space, partition, count)
+		setupPartition(t, ctx, service, space, partition, count)
 
 		args := &models.PeekArgs{
-			Tenant:    tenant,
 			Space:     space,
 			Partition: partition,
 		}
@@ -325,20 +282,18 @@ func TestService_ConsumeSpace(t *testing.T) {
 
 	t.Run("should consume all entries in a space", func(t *testing.T) {
 		// Arrange
-		tenant := "t_" + uuid.NewString()
 		space := "s_" + uuid.NewString()
 
 		var total int
 		for p := 0; p < 29; p++ {
 			count := rand.Intn(9871)
 			partition := "p_" + uuid.NewString()
-			setupPartition(t, ctx, service, tenant, space, partition, count)
+			setupPartition(t, ctx, service, space, partition, count)
 			total += count
 		}
 
 		args := &models.ConsumeSpaceArgs{
-			Tenant: tenant,
-			Space:  space,
+			Space: space,
 		}
 
 		// Act
@@ -358,17 +313,15 @@ func TestService_ConsumePartition(t *testing.T) {
 
 	t.Run("should consume all entries in a partition", func(t *testing.T) {
 		// Arrange
-		tenant := "t_" + uuid.NewString()
 		space := "s_" + uuid.NewString()
 		partition := "p_" + uuid.NewString()
 		seed1 := rand.Intn(9871)
 		seed2 := rand.Intn(9871)
 		total := seed1 + seed2
-		setupPartition(t, ctx, service, tenant, space, partition, seed1)
-		produce(t, ctx, service, tenant, space, partition, seed1, seed2)
+		setupPartition(t, ctx, service, space, partition, seed1)
+		produce(t, ctx, service, space, partition, seed1, seed2)
 
 		args := &models.ConsumePartitionArgs{
-			Tenant:    tenant,
 			Space:     space,
 			Partition: partition,
 		}
@@ -386,15 +339,13 @@ func TestService_ConsumePartition(t *testing.T) {
 
 	t.Run("should consume all entries starting with exclusive min sequence", func(t *testing.T) {
 		// Arrange
-		tenant := "t_" + uuid.NewString()
 		space := "s_" + uuid.NewString()
 		partition := "p_" + uuid.NewString()
 		count := 9871
 		min := 5899
-		setupPartition(t, ctx, service, tenant, space, partition, count)
+		setupPartition(t, ctx, service, space, partition, count)
 
 		args := &models.ConsumePartitionArgs{
-			Tenant:      tenant,
 			Space:       space,
 			Partition:   partition,
 			MinSequence: uint64(min),
@@ -414,17 +365,15 @@ func TestService_ConsumePartition(t *testing.T) {
 
 	t.Run("should consume all entries til inclusive max timestamp", func(t *testing.T) {
 		// Arrange
-		tenant := "t_" + uuid.NewString()
 		space := "s_" + uuid.NewString()
 		partition := "p_" + uuid.NewString()
 		count := rand.Intn(9871)
-		setupPartition(t, ctx, service, tenant, space, partition, count)
+		setupPartition(t, ctx, service, space, partition, count)
 		ts := util.GetTimestamp()
 		time.Sleep(3 * time.Millisecond)
-		produce(t, ctx, service, tenant, space, partition, count, 25)
+		produce(t, ctx, service, space, partition, count, 25)
 
 		args := &models.ConsumePartitionArgs{
-			Tenant:       tenant,
 			Space:        space,
 			Partition:    partition,
 			MaxTimestamp: ts,
@@ -446,15 +395,13 @@ func TestService_Produce(t *testing.T) {
 
 	t.Run("should produce a single page", func(t *testing.T) {
 		// Arrange
-		tenant := "t_" + uuid.NewString()
 		space := "s_" + uuid.NewString()
 		partition := "p_" + uuid.NewString()
 		count := 9873
 
-		setupPartition(t, ctx, service, tenant, space, partition, 0)
+		setupPartition(t, ctx, service, space, partition, 0)
 
 		args := &models.ProduceArgs{
-			Tenant:    tenant,
 			Space:     space,
 			Partition: partition,
 		}
@@ -471,15 +418,13 @@ func TestService_Produce(t *testing.T) {
 
 	t.Run("should produce multiple pages", func(t *testing.T) {
 		// Arrange
-		tenant := "t_" + uuid.NewString()
 		space := "s_" + uuid.NewString()
 		partition := "p_" + uuid.NewString()
 		count := 289_997
 
-		setupPartition(t, ctx, service, tenant, space, partition, 0)
+		setupPartition(t, ctx, service, space, partition, 0)
 
 		args := &models.ProduceArgs{
-			Tenant:    tenant,
 			Space:     space,
 			Partition: partition,
 		}
@@ -497,22 +442,20 @@ func TestService_Produce(t *testing.T) {
 
 	t.Run("should not produce given invalid sequence", func(t *testing.T) {
 		// Arrange
-		tenant := "t_" + uuid.NewString()
 		space := "s_" + uuid.NewString()
 		partition := "p_" + uuid.NewString()
 
-		setupPartition(t, ctx, service, tenant, space, partition, 0)
+		setupPartition(t, ctx, service, space, partition, 0)
 
 		args := &models.ProduceArgs{
-			Tenant:    tenant,
 			Space:     space,
 			Partition: partition,
 		}
 		entries := enumerators.Slice(
 			[]*models.Entry{
-				test.GetSampleEntry(tenant, space, partition, 1),
-				test.GetSampleEntry(tenant, space, partition, 2),
-				test.GetSampleEntry(tenant, space, partition, 0),
+				test.GetSampleEntry(space, partition, 1),
+				test.GetSampleEntry(space, partition, 2),
+				test.GetSampleEntry(space, partition, 0),
 			})
 
 		// Act
@@ -527,23 +470,21 @@ func TestService_Produce(t *testing.T) {
 
 	t.Run("should not produce given sequence gaps", func(t *testing.T) {
 		// Arrange
-		tenant := "t_" + uuid.NewString()
 		space := "s_" + uuid.NewString()
 		partition := "p_" + uuid.NewString()
 
-		setupPartition(t, ctx, service, tenant, space, partition, 0)
+		setupPartition(t, ctx, service, space, partition, 0)
 
 		args := &models.ProduceArgs{
-			Tenant:    tenant,
 			Space:     space,
 			Partition: partition,
 		}
 
 		entries := enumerators.Slice(
 			[]*models.Entry{
-				test.GetSampleEntry(tenant, space, partition, 1),
-				test.GetSampleEntry(tenant, space, partition, 2),
-				test.GetSampleEntry(tenant, space, partition, 8),
+				test.GetSampleEntry(space, partition, 1),
+				test.GetSampleEntry(space, partition, 2),
+				test.GetSampleEntry(space, partition, 8),
 			})
 
 		// Act
@@ -559,28 +500,26 @@ func TestService_Produce(t *testing.T) {
 	for _, strategy := range strategies {
 		t.Run("should produce but skip duplicate sequence : "+strategy, func(t *testing.T) {
 			// Arrange
-			tenant := "t_" + uuid.NewString()
 			space := "s_" + uuid.NewString()
 			partition := "p_" + uuid.NewString()
 
-			setupPartition(t, ctx, service, tenant, space, partition, 0)
+			setupPartition(t, ctx, service, space, partition, 0)
 
-			duplicate := test.GetSampleEntry(tenant, space, partition, 3)
+			duplicate := test.GetSampleEntry(space, partition, 3)
 
 			args := &models.ProduceArgs{
-				Tenant:    tenant,
 				Space:     space,
 				Partition: partition,
 				Strategy:  strategy,
 			}
 			entries := enumerators.Slice(
 				[]*models.Entry{
-					test.GetSampleEntry(tenant, space, partition, 1),
-					test.GetSampleEntry(tenant, space, partition, 2),
+					test.GetSampleEntry(space, partition, 1),
+					test.GetSampleEntry(space, partition, 2),
 					duplicate,
 					duplicate,
-					test.GetSampleEntry(tenant, space, partition, 4),
-					test.GetSampleEntry(tenant, space, partition, 5),
+					test.GetSampleEntry(space, partition, 4),
+					test.GetSampleEntry(space, partition, 5),
 				})
 
 			// Act
@@ -598,16 +537,14 @@ func TestService_Produce(t *testing.T) {
 	for _, strategy := range strategies {
 		t.Run("should not produce given duplicate sequence : "+strategy, func(t *testing.T) {
 			// Arrange
-			tenant := "t_" + uuid.NewString()
 			space := "s_" + uuid.NewString()
 			partition := "p_" + uuid.NewString()
 
-			setupPartition(t, ctx, service, tenant, space, partition, 0)
+			setupPartition(t, ctx, service, space, partition, 0)
 
-			duplicate := test.GetSampleEntry(tenant, space, partition, 3)
+			duplicate := test.GetSampleEntry(space, partition, 3)
 
 			args := &models.ProduceArgs{
-				Tenant:    tenant,
 				Space:     space,
 				Partition: partition,
 				Strategy:  strategy,
@@ -615,12 +552,12 @@ func TestService_Produce(t *testing.T) {
 
 			entries := enumerators.Slice(
 				[]*models.Entry{
-					test.GetSampleEntry(tenant, space, partition, 1),
-					test.GetSampleEntry(tenant, space, partition, 2),
+					test.GetSampleEntry(space, partition, 1),
+					test.GetSampleEntry(space, partition, 2),
 					duplicate,
 					duplicate,
-					test.GetSampleEntry(tenant, space, partition, 4),
-					test.GetSampleEntry(tenant, space, partition, 5),
+					test.GetSampleEntry(space, partition, 4),
+					test.GetSampleEntry(space, partition, 5),
 				})
 
 			// Act
@@ -639,18 +576,16 @@ func TestService_Merge(t *testing.T) {
 
 	t.Run("should not merge given small volume of data", func(t *testing.T) {
 		// Arrange
-		tenant := "t_" + uuid.NewString()
 		space := "s_" + uuid.NewString()
 		partition := "p_" + uuid.NewString()
 
 		count := 10_000
-		setupPartition(t, ctx, service, tenant, space, partition, count)
+		setupPartition(t, ctx, service, space, partition, count)
 		for i := 1; i < 3; i++ {
-			produce(t, ctx, service, tenant, space, partition, count*i, count)
+			produce(t, ctx, service, space, partition, count*i, count)
 		}
 
 		args := &models.MergeArgs{
-			Tenant:    tenant,
 			Space:     space,
 			Partition: partition,
 		}
@@ -666,18 +601,16 @@ func TestService_Merge(t *testing.T) {
 
 	t.Run("should merge pages from one tier to the next", func(t *testing.T) {
 		// Arrange
-		tenant := "t_" + uuid.NewString()
 		space := "s_" + uuid.NewString()
 		partition := "p_" + uuid.NewString()
 
 		count := 10_000
-		setupPartition(t, ctx, service, tenant, space, partition, count)
+		setupPartition(t, ctx, service, space, partition, count)
 		for i := 1; i < 47; i++ {
-			produce(t, ctx, service, tenant, space, partition, count*i, count)
+			produce(t, ctx, service, space, partition, count*i, count)
 		}
 
 		args := &models.MergeArgs{
-			Tenant:    tenant,
 			Space:     space,
 			Partition: partition,
 		}
@@ -697,19 +630,17 @@ func TestService_Prune(t *testing.T) {
 
 	t.Run("should prune obsolete pages in a partition", func(t *testing.T) {
 		// Arrange
-		tenant := "t_" + uuid.NewString()
 		space := "s_" + uuid.NewString()
 		partition := "p_" + uuid.NewString()
 		tier := int32(0)
 
 		count := 10_000
-		setupPartition(t, ctx, service, tenant, space, partition, count)
+		setupPartition(t, ctx, service, space, partition, count)
 		for i := 1; i < 47; i++ {
-			produce(t, ctx, service, tenant, space, partition, count*i, count)
+			produce(t, ctx, service, space, partition, count*i, count)
 		}
 
 		merge := service.Merge(ctx, &models.MergeArgs{
-			Tenant:    tenant,
 			Space:     space,
 			Partition: partition,
 		})
@@ -718,7 +649,6 @@ func TestService_Prune(t *testing.T) {
 		require.NotEmpty(t, mergedPages)
 
 		args := &models.PruneArgs{
-			Tenant:    tenant,
 			Space:     space,
 			Partition: partition,
 			Tier:      tier,
