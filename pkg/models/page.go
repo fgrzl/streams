@@ -28,17 +28,7 @@ const (
 )
 
 var (
-	minPageSizes = map[int32]int64{
-		0: PageSizeZero,
-		1: PageSizeNano,
-		2: PageSizeMicro,
-		3: PageSizeSmall,
-		4: PageSizeMedium,
-		5: PageSizeLarge,
-		6: PageSizeXLarge,
-	}
-
-	maxPageSizes = map[int32]int64{
+	pageSizes = map[int32]int64{
 		0: PageSizeNano,
 		1: PageSizeMicro,
 		2: PageSizeSmall,
@@ -54,12 +44,15 @@ var EmptyPage = &Page{}
 
 // GetMinPageSize returns the minimum page size for the given storage tier
 func GetMinPageSize(tier int32) int64 {
-	return minPageSizes[tier]
+	if tier == 0 {
+		return PageSizeZero
+	}
+	return pageSizes[tier]
 }
 
 // GetMaxPageSize returns the maximum page size for the given storage tier
 func GetMaxPageSize(tier int32) int64 {
-	return maxPageSizes[tier]
+	return pageSizes[tier]
 }
 
 // GetCoveringPages calculates the pages that cover the given sequence range.
