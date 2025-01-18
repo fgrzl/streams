@@ -346,6 +346,10 @@ func (s *serviceImpl) ConsumeSpace(ctx context.Context, args *models.ConsumeSpac
 
 	var consumers []enumerators.Enumerator[*models.EntryEnvelope]
 
+	if args.MaxTimestamp == 0 {
+		args.MaxTimestamp = util.GetTimestamp()
+	}
+
 	for partitions.MoveNext() {
 		if ctx.Err() != nil {
 			return enumerators.Error[*models.EntryEnvelope](ctx.Err())
@@ -370,7 +374,6 @@ func (s *serviceImpl) ConsumeSpace(ctx context.Context, args *models.ConsumeSpac
 			Partition:    partitionKey,
 			MinSequence:  minSequence,
 			MinTimestamp: minTimestamp,
-			MaxSequence:  args.MaxSequence,
 			MaxTimestamp: args.MaxTimestamp,
 		}
 

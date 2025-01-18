@@ -234,14 +234,12 @@ message ProduceArgs {
 message ConsumeSpaceArgs {
     // The unique identifier of the space to consume from
     string space = 1;
-    // Map of partition offsets to start consuming from
-    map<string, Offset> offsets = 2;
     // The minimum timestamp to include in consumption (in milliseconds since epoch)
-    int64 min_timestamp = 3;
-    // The maximum sequence number to include in consumption
-    uint64 max_sequence = 4;
+    int64 min_timestamp = 2;
     // The maximum timestamp to include in consumption (in milliseconds since epoch)
-    int64 max_timestamp = 5;
+    int64 max_timestamp = 3;
+    // Map of partition offsets to start consuming from
+    map<string, Offset> offsets = 4;
 }
 
 message ConsumePartitionArgs {

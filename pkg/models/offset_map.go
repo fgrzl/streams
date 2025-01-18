@@ -6,23 +6,19 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func NewOffsetMap(spaces ...string) *OffsetMap {
-
-	offsets := make(map[string]*Offset)
-	for _, space := range spaces {
-		offsets[space] = &Offset{}
-	}
-	return &OffsetMap{
-		Offsets: offsets,
-	}
+func NewOffsetMap(data []byte) *OffsetMap {
+	offsets := &OffsetMap{}
+	return offsets.Unmarshal(data)
 }
 
-func (o *OffsetMap) Get(space string) *Offset {
-	return o.Offsets[space]
+func (o *OffsetMap) Get(space, partition string) *Offset {
+	key := GetOffsetMapKey(space, partition)
+	return o.Offsets[key]
 }
 
-func (o *OffsetMap) Set(space string, offset *Offset) {
-	o.Offsets[space] = offset
+func (o *OffsetMap) Set(space, partition string, offset *Offset) {
+	key := GetOffsetMapKey(space, partition)
+	o.Offsets[key] = offset
 }
 
 func (o *OffsetMap) Marshal() []byte {
@@ -36,4 +32,8 @@ func (o *OffsetMap) Marshal() []byte {
 func (o *OffsetMap) Unmarshal(data []byte) *OffsetMap {
 	proto.Unmarshal(data, o)
 	return o
+}
+
+func GetOffsetMapKey(space, partition string) string {
+	return space + ":" + partition
 }
