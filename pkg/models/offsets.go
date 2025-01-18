@@ -15,6 +15,10 @@ func (o *PartitionOffsets) Get(partition string) *Offset {
 	return o.Offsets[partition]
 }
 
+func (o *PartitionOffsets) GetOffsetMap() map[string]*Offset {
+	return o.Offsets
+}
+
 func (o *PartitionOffsets) Set(partition string, offset *Offset) {
 	o.Offsets[partition] = offset
 }
@@ -37,7 +41,7 @@ func NewSpaceOffsets(data []byte) *SpaceOffsets {
 	return offsets.Unmarshal(data)
 }
 
-func (o *SpaceOffsets) Get(space, partition string) *Offset {
+func (o *SpaceOffsets) GetOffset(space, partition string) *Offset {
 	partitionOffsets, ok := o.Offsets[space]
 	if ok {
 		return partitionOffsets.Get(partition)
@@ -45,10 +49,20 @@ func (o *SpaceOffsets) Get(space, partition string) *Offset {
 	return &Offset{}
 }
 
+func (o *SpaceOffsets) GetOffsetMap(space string) map[string]*Offset {
+	partitionOffsets, ok := o.Offsets[space]
+	if ok {
+		return partitionOffsets.GetOffsetMap()
+	}
+	return make(map[string]*Offset)
+}
+
 func (o *SpaceOffsets) Set(space, partition string, offset *Offset) {
 	partitionOffsets, ok := o.Offsets[space]
 	if !ok {
-		partitionOffsets = &PartitionOffsets{}
+		partitionOffsets = &PartitionOffsets{
+			Offsets: make(map[string]*Offset),
+		}
 	}
 	partitionOffsets.Set(partition, offset)
 }
