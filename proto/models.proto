@@ -103,8 +103,12 @@ message Offset {
     int64 timestamp = 2;
 }
 
-message OffsetMap {
+message PartitionOffsets {
      map<string, Offset> offsets = 1;
+}
+
+message SpaceOffsets {
+     map<string, PartitionOffsets> offsets = 1;
 }
 
 // Envelope that includes a partition descriptor and an entry

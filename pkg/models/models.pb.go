@@ -467,27 +467,27 @@ func (x *Offset) GetTimestamp() int64 {
 	return 0
 }
 
-type OffsetMap struct {
+type PartitionOffsets struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Offsets       map[string]*Offset     `protobuf:"bytes,1,rep,name=offsets,proto3" json:"offsets,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *OffsetMap) Reset() {
-	*x = OffsetMap{}
+func (x *PartitionOffsets) Reset() {
+	*x = PartitionOffsets{}
 	mi := &file_models_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *OffsetMap) String() string {
+func (x *PartitionOffsets) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*OffsetMap) ProtoMessage() {}
+func (*PartitionOffsets) ProtoMessage() {}
 
-func (x *OffsetMap) ProtoReflect() protoreflect.Message {
+func (x *PartitionOffsets) ProtoReflect() protoreflect.Message {
 	mi := &file_models_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -499,12 +499,56 @@ func (x *OffsetMap) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use OffsetMap.ProtoReflect.Descriptor instead.
-func (*OffsetMap) Descriptor() ([]byte, []int) {
+// Deprecated: Use PartitionOffsets.ProtoReflect.Descriptor instead.
+func (*PartitionOffsets) Descriptor() ([]byte, []int) {
 	return file_models_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *OffsetMap) GetOffsets() map[string]*Offset {
+func (x *PartitionOffsets) GetOffsets() map[string]*Offset {
+	if x != nil {
+		return x.Offsets
+	}
+	return nil
+}
+
+type SpaceOffsets struct {
+	state         protoimpl.MessageState       `protogen:"open.v1"`
+	Offsets       map[string]*PartitionOffsets `protobuf:"bytes,1,rep,name=offsets,proto3" json:"offsets,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SpaceOffsets) Reset() {
+	*x = SpaceOffsets{}
+	mi := &file_models_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SpaceOffsets) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SpaceOffsets) ProtoMessage() {}
+
+func (x *SpaceOffsets) ProtoReflect() protoreflect.Message {
+	mi := &file_models_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SpaceOffsets.ProtoReflect.Descriptor instead.
+func (*SpaceOffsets) Descriptor() ([]byte, []int) {
+	return file_models_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *SpaceOffsets) GetOffsets() map[string]*PartitionOffsets {
 	if x != nil {
 		return x.Offsets
 	}
@@ -524,7 +568,7 @@ type EntryEnvelope struct {
 
 func (x *EntryEnvelope) Reset() {
 	*x = EntryEnvelope{}
-	mi := &file_models_proto_msgTypes[7]
+	mi := &file_models_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -536,7 +580,7 @@ func (x *EntryEnvelope) String() string {
 func (*EntryEnvelope) ProtoMessage() {}
 
 func (x *EntryEnvelope) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[7]
+	mi := &file_models_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -549,7 +593,7 @@ func (x *EntryEnvelope) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EntryEnvelope.ProtoReflect.Descriptor instead.
 func (*EntryEnvelope) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{7}
+	return file_models_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *EntryEnvelope) GetPartitionDescriptor() *PartitionDescriptor {
@@ -591,7 +635,7 @@ type Page struct {
 
 func (x *Page) Reset() {
 	*x = Page{}
-	mi := &file_models_proto_msgTypes[8]
+	mi := &file_models_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -603,7 +647,7 @@ func (x *Page) String() string {
 func (*Page) ProtoMessage() {}
 
 func (x *Page) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[8]
+	mi := &file_models_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -616,7 +660,7 @@ func (x *Page) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Page.ProtoReflect.Descriptor instead.
 func (*Page) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{8}
+	return file_models_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *Page) GetNumber() int32 {
@@ -688,7 +732,7 @@ type PageIndexEntry struct {
 
 func (x *PageIndexEntry) Reset() {
 	*x = PageIndexEntry{}
-	mi := &file_models_proto_msgTypes[9]
+	mi := &file_models_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -700,7 +744,7 @@ func (x *PageIndexEntry) String() string {
 func (*PageIndexEntry) ProtoMessage() {}
 
 func (x *PageIndexEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[9]
+	mi := &file_models_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -713,7 +757,7 @@ func (x *PageIndexEntry) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PageIndexEntry.ProtoReflect.Descriptor instead.
 func (*PageIndexEntry) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{9}
+	return file_models_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *PageIndexEntry) GetSequence() uint64 {
@@ -743,7 +787,7 @@ type Manifest struct {
 
 func (x *Manifest) Reset() {
 	*x = Manifest{}
-	mi := &file_models_proto_msgTypes[10]
+	mi := &file_models_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -755,7 +799,7 @@ func (x *Manifest) String() string {
 func (*Manifest) ProtoMessage() {}
 
 func (x *Manifest) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[10]
+	mi := &file_models_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -768,7 +812,7 @@ func (x *Manifest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Manifest.ProtoReflect.Descriptor instead.
 func (*Manifest) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{10}
+	return file_models_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *Manifest) GetPages() []*Page {
@@ -796,7 +840,7 @@ type GetSpacesArgs struct {
 
 func (x *GetSpacesArgs) Reset() {
 	*x = GetSpacesArgs{}
-	mi := &file_models_proto_msgTypes[11]
+	mi := &file_models_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -808,7 +852,7 @@ func (x *GetSpacesArgs) String() string {
 func (*GetSpacesArgs) ProtoMessage() {}
 
 func (x *GetSpacesArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[11]
+	mi := &file_models_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -821,7 +865,7 @@ func (x *GetSpacesArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSpacesArgs.ProtoReflect.Descriptor instead.
 func (*GetSpacesArgs) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{11}
+	return file_models_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *GetSpacesArgs) GetSpace() string {
@@ -841,7 +885,7 @@ type DeleteSpaceArgs struct {
 
 func (x *DeleteSpaceArgs) Reset() {
 	*x = DeleteSpaceArgs{}
-	mi := &file_models_proto_msgTypes[12]
+	mi := &file_models_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -853,7 +897,7 @@ func (x *DeleteSpaceArgs) String() string {
 func (*DeleteSpaceArgs) ProtoMessage() {}
 
 func (x *DeleteSpaceArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[12]
+	mi := &file_models_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -866,7 +910,7 @@ func (x *DeleteSpaceArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteSpaceArgs.ProtoReflect.Descriptor instead.
 func (*DeleteSpaceArgs) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{12}
+	return file_models_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *DeleteSpaceArgs) GetSpace() string {
@@ -889,7 +933,7 @@ type GetPartitionsArgs struct {
 
 func (x *GetPartitionsArgs) Reset() {
 	*x = GetPartitionsArgs{}
-	mi := &file_models_proto_msgTypes[13]
+	mi := &file_models_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -901,7 +945,7 @@ func (x *GetPartitionsArgs) String() string {
 func (*GetPartitionsArgs) ProtoMessage() {}
 
 func (x *GetPartitionsArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[13]
+	mi := &file_models_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -914,7 +958,7 @@ func (x *GetPartitionsArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPartitionsArgs.ProtoReflect.Descriptor instead.
 func (*GetPartitionsArgs) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{13}
+	return file_models_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *GetPartitionsArgs) GetSpace() string {
@@ -943,7 +987,7 @@ type GetPartitionArgs struct {
 
 func (x *GetPartitionArgs) Reset() {
 	*x = GetPartitionArgs{}
-	mi := &file_models_proto_msgTypes[14]
+	mi := &file_models_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -955,7 +999,7 @@ func (x *GetPartitionArgs) String() string {
 func (*GetPartitionArgs) ProtoMessage() {}
 
 func (x *GetPartitionArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[14]
+	mi := &file_models_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -968,7 +1012,7 @@ func (x *GetPartitionArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPartitionArgs.ProtoReflect.Descriptor instead.
 func (*GetPartitionArgs) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{14}
+	return file_models_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *GetPartitionArgs) GetSpace() string {
@@ -997,7 +1041,7 @@ type CreatePartitionArgs struct {
 
 func (x *CreatePartitionArgs) Reset() {
 	*x = CreatePartitionArgs{}
-	mi := &file_models_proto_msgTypes[15]
+	mi := &file_models_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1009,7 +1053,7 @@ func (x *CreatePartitionArgs) String() string {
 func (*CreatePartitionArgs) ProtoMessage() {}
 
 func (x *CreatePartitionArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[15]
+	mi := &file_models_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1022,7 +1066,7 @@ func (x *CreatePartitionArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreatePartitionArgs.ProtoReflect.Descriptor instead.
 func (*CreatePartitionArgs) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{15}
+	return file_models_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *CreatePartitionArgs) GetSpace() string {
@@ -1051,7 +1095,7 @@ type DeletePartitionArgs struct {
 
 func (x *DeletePartitionArgs) Reset() {
 	*x = DeletePartitionArgs{}
-	mi := &file_models_proto_msgTypes[16]
+	mi := &file_models_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1063,7 +1107,7 @@ func (x *DeletePartitionArgs) String() string {
 func (*DeletePartitionArgs) ProtoMessage() {}
 
 func (x *DeletePartitionArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[16]
+	mi := &file_models_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1076,7 +1120,7 @@ func (x *DeletePartitionArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeletePartitionArgs.ProtoReflect.Descriptor instead.
 func (*DeletePartitionArgs) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{16}
+	return file_models_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *DeletePartitionArgs) GetSpace() string {
@@ -1108,7 +1152,7 @@ type CreateTierArgs struct {
 
 func (x *CreateTierArgs) Reset() {
 	*x = CreateTierArgs{}
-	mi := &file_models_proto_msgTypes[17]
+	mi := &file_models_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1120,7 +1164,7 @@ func (x *CreateTierArgs) String() string {
 func (*CreateTierArgs) ProtoMessage() {}
 
 func (x *CreateTierArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[17]
+	mi := &file_models_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1133,7 +1177,7 @@ func (x *CreateTierArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateTierArgs.ProtoReflect.Descriptor instead.
 func (*CreateTierArgs) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{17}
+	return file_models_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *CreateTierArgs) GetSpace() string {
@@ -1174,7 +1218,7 @@ type ProduceArgs struct {
 
 func (x *ProduceArgs) Reset() {
 	*x = ProduceArgs{}
-	mi := &file_models_proto_msgTypes[18]
+	mi := &file_models_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1186,7 +1230,7 @@ func (x *ProduceArgs) String() string {
 func (*ProduceArgs) ProtoMessage() {}
 
 func (x *ProduceArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[18]
+	mi := &file_models_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1199,7 +1243,7 @@ func (x *ProduceArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProduceArgs.ProtoReflect.Descriptor instead.
 func (*ProduceArgs) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{18}
+	return file_models_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *ProduceArgs) GetSpace() string {
@@ -1246,7 +1290,7 @@ type ConsumeSpaceArgs struct {
 
 func (x *ConsumeSpaceArgs) Reset() {
 	*x = ConsumeSpaceArgs{}
-	mi := &file_models_proto_msgTypes[19]
+	mi := &file_models_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1258,7 +1302,7 @@ func (x *ConsumeSpaceArgs) String() string {
 func (*ConsumeSpaceArgs) ProtoMessage() {}
 
 func (x *ConsumeSpaceArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[19]
+	mi := &file_models_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1271,7 +1315,7 @@ func (x *ConsumeSpaceArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConsumeSpaceArgs.ProtoReflect.Descriptor instead.
 func (*ConsumeSpaceArgs) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{19}
+	return file_models_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *ConsumeSpaceArgs) GetSpace() string {
@@ -1322,7 +1366,7 @@ type ConsumePartitionArgs struct {
 
 func (x *ConsumePartitionArgs) Reset() {
 	*x = ConsumePartitionArgs{}
-	mi := &file_models_proto_msgTypes[20]
+	mi := &file_models_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1334,7 +1378,7 @@ func (x *ConsumePartitionArgs) String() string {
 func (*ConsumePartitionArgs) ProtoMessage() {}
 
 func (x *ConsumePartitionArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[20]
+	mi := &file_models_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1347,7 +1391,7 @@ func (x *ConsumePartitionArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConsumePartitionArgs.ProtoReflect.Descriptor instead.
 func (*ConsumePartitionArgs) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{20}
+	return file_models_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *ConsumePartitionArgs) GetSpace() string {
@@ -1404,7 +1448,7 @@ type PeekArgs struct {
 
 func (x *PeekArgs) Reset() {
 	*x = PeekArgs{}
-	mi := &file_models_proto_msgTypes[21]
+	mi := &file_models_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1416,7 +1460,7 @@ func (x *PeekArgs) String() string {
 func (*PeekArgs) ProtoMessage() {}
 
 func (x *PeekArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[21]
+	mi := &file_models_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1429,7 +1473,7 @@ func (x *PeekArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PeekArgs.ProtoReflect.Descriptor instead.
 func (*PeekArgs) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{21}
+	return file_models_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *PeekArgs) GetSpace() string {
@@ -1461,7 +1505,7 @@ type MergeArgs struct {
 
 func (x *MergeArgs) Reset() {
 	*x = MergeArgs{}
-	mi := &file_models_proto_msgTypes[22]
+	mi := &file_models_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1473,7 +1517,7 @@ func (x *MergeArgs) String() string {
 func (*MergeArgs) ProtoMessage() {}
 
 func (x *MergeArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[22]
+	mi := &file_models_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1486,7 +1530,7 @@ func (x *MergeArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MergeArgs.ProtoReflect.Descriptor instead.
 func (*MergeArgs) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{22}
+	return file_models_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *MergeArgs) GetSpace() string {
@@ -1524,7 +1568,7 @@ type PruneArgs struct {
 
 func (x *PruneArgs) Reset() {
 	*x = PruneArgs{}
-	mi := &file_models_proto_msgTypes[23]
+	mi := &file_models_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1536,7 +1580,7 @@ func (x *PruneArgs) String() string {
 func (*PruneArgs) ProtoMessage() {}
 
 func (x *PruneArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[23]
+	mi := &file_models_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1549,7 +1593,7 @@ func (x *PruneArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PruneArgs.ProtoReflect.Descriptor instead.
 func (*PruneArgs) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{23}
+	return file_models_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *PruneArgs) GetSpace() string {
@@ -1587,7 +1631,7 @@ type RebuildArgs struct {
 
 func (x *RebuildArgs) Reset() {
 	*x = RebuildArgs{}
-	mi := &file_models_proto_msgTypes[24]
+	mi := &file_models_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1599,7 +1643,7 @@ func (x *RebuildArgs) String() string {
 func (*RebuildArgs) ProtoMessage() {}
 
 func (x *RebuildArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[24]
+	mi := &file_models_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1612,7 +1656,7 @@ func (x *RebuildArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RebuildArgs.ProtoReflect.Descriptor instead.
 func (*RebuildArgs) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{24}
+	return file_models_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *RebuildArgs) GetSpace() string {
@@ -1655,7 +1699,7 @@ type ReadPageArgs struct {
 
 func (x *ReadPageArgs) Reset() {
 	*x = ReadPageArgs{}
-	mi := &file_models_proto_msgTypes[25]
+	mi := &file_models_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1667,7 +1711,7 @@ func (x *ReadPageArgs) String() string {
 func (*ReadPageArgs) ProtoMessage() {}
 
 func (x *ReadPageArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[25]
+	mi := &file_models_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1680,7 +1724,7 @@ func (x *ReadPageArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReadPageArgs.ProtoReflect.Descriptor instead.
 func (*ReadPageArgs) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{25}
+	return file_models_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *ReadPageArgs) GetSpace() string {
@@ -1740,7 +1784,7 @@ type WritePageArgs struct {
 
 func (x *WritePageArgs) Reset() {
 	*x = WritePageArgs{}
-	mi := &file_models_proto_msgTypes[26]
+	mi := &file_models_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1752,7 +1796,7 @@ func (x *WritePageArgs) String() string {
 func (*WritePageArgs) ProtoMessage() {}
 
 func (x *WritePageArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[26]
+	mi := &file_models_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1765,7 +1809,7 @@ func (x *WritePageArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WritePageArgs.ProtoReflect.Descriptor instead.
 func (*WritePageArgs) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{26}
+	return file_models_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *WritePageArgs) GetSpace() string {
@@ -1833,7 +1877,7 @@ type DeletePageArgs struct {
 
 func (x *DeletePageArgs) Reset() {
 	*x = DeletePageArgs{}
-	mi := &file_models_proto_msgTypes[27]
+	mi := &file_models_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1845,7 +1889,7 @@ func (x *DeletePageArgs) String() string {
 func (*DeletePageArgs) ProtoMessage() {}
 
 func (x *DeletePageArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[27]
+	mi := &file_models_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1858,7 +1902,7 @@ func (x *DeletePageArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeletePageArgs.ProtoReflect.Descriptor instead.
 func (*DeletePageArgs) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{27}
+	return file_models_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *DeletePageArgs) GetSpace() string {
@@ -1903,7 +1947,7 @@ type GetPagesArgs struct {
 
 func (x *GetPagesArgs) Reset() {
 	*x = GetPagesArgs{}
-	mi := &file_models_proto_msgTypes[28]
+	mi := &file_models_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1915,7 +1959,7 @@ func (x *GetPagesArgs) String() string {
 func (*GetPagesArgs) ProtoMessage() {}
 
 func (x *GetPagesArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[28]
+	mi := &file_models_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1928,7 +1972,7 @@ func (x *GetPagesArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPagesArgs.ProtoReflect.Descriptor instead.
 func (*GetPagesArgs) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{28}
+	return file_models_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *GetPagesArgs) GetSpace() string {
@@ -1965,7 +2009,7 @@ type GetStatusArgs struct {
 
 func (x *GetStatusArgs) Reset() {
 	*x = GetStatusArgs{}
-	mi := &file_models_proto_msgTypes[29]
+	mi := &file_models_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1977,7 +2021,7 @@ func (x *GetStatusArgs) String() string {
 func (*GetStatusArgs) ProtoMessage() {}
 
 func (x *GetStatusArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[29]
+	mi := &file_models_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1990,7 +2034,7 @@ func (x *GetStatusArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetStatusArgs.ProtoReflect.Descriptor instead.
 func (*GetStatusArgs) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{29}
+	return file_models_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *GetStatusArgs) GetSpace() string {
@@ -2016,7 +2060,7 @@ type GetSpacesRequest struct {
 
 func (x *GetSpacesRequest) Reset() {
 	*x = GetSpacesRequest{}
-	mi := &file_models_proto_msgTypes[30]
+	mi := &file_models_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2028,7 +2072,7 @@ func (x *GetSpacesRequest) String() string {
 func (*GetSpacesRequest) ProtoMessage() {}
 
 func (x *GetSpacesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[30]
+	mi := &file_models_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2041,7 +2085,7 @@ func (x *GetSpacesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSpacesRequest.ProtoReflect.Descriptor instead.
 func (*GetSpacesRequest) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{30}
+	return file_models_proto_rawDescGZIP(), []int{31}
 }
 
 // Request to get partitions
@@ -2053,7 +2097,7 @@ type GetPartitionsRequest struct {
 
 func (x *GetPartitionsRequest) Reset() {
 	*x = GetPartitionsRequest{}
-	mi := &file_models_proto_msgTypes[31]
+	mi := &file_models_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2065,7 +2109,7 @@ func (x *GetPartitionsRequest) String() string {
 func (*GetPartitionsRequest) ProtoMessage() {}
 
 func (x *GetPartitionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[31]
+	mi := &file_models_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2078,7 +2122,7 @@ func (x *GetPartitionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPartitionsRequest.ProtoReflect.Descriptor instead.
 func (*GetPartitionsRequest) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{31}
+	return file_models_proto_rawDescGZIP(), []int{32}
 }
 
 // Request to get the status
@@ -2090,7 +2134,7 @@ type GetStatusRequest struct {
 
 func (x *GetStatusRequest) Reset() {
 	*x = GetStatusRequest{}
-	mi := &file_models_proto_msgTypes[32]
+	mi := &file_models_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2102,7 +2146,7 @@ func (x *GetStatusRequest) String() string {
 func (*GetStatusRequest) ProtoMessage() {}
 
 func (x *GetStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[32]
+	mi := &file_models_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2115,7 +2159,7 @@ func (x *GetStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetStatusRequest.ProtoReflect.Descriptor instead.
 func (*GetStatusRequest) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{32}
+	return file_models_proto_rawDescGZIP(), []int{33}
 }
 
 // Response with status message
@@ -2129,7 +2173,7 @@ type StatusResponse struct {
 
 func (x *StatusResponse) Reset() {
 	*x = StatusResponse{}
-	mi := &file_models_proto_msgTypes[33]
+	mi := &file_models_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2141,7 +2185,7 @@ func (x *StatusResponse) String() string {
 func (*StatusResponse) ProtoMessage() {}
 
 func (x *StatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[33]
+	mi := &file_models_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2154,7 +2198,7 @@ func (x *StatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StatusResponse.ProtoReflect.Descriptor instead.
 func (*StatusResponse) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{33}
+	return file_models_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *StatusResponse) GetMessage() string {
@@ -2173,7 +2217,7 @@ type CreatePartitionRequest struct {
 
 func (x *CreatePartitionRequest) Reset() {
 	*x = CreatePartitionRequest{}
-	mi := &file_models_proto_msgTypes[34]
+	mi := &file_models_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2185,7 +2229,7 @@ func (x *CreatePartitionRequest) String() string {
 func (*CreatePartitionRequest) ProtoMessage() {}
 
 func (x *CreatePartitionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[34]
+	mi := &file_models_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2198,7 +2242,7 @@ func (x *CreatePartitionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreatePartitionRequest.ProtoReflect.Descriptor instead.
 func (*CreatePartitionRequest) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{34}
+	return file_models_proto_rawDescGZIP(), []int{35}
 }
 
 // Request to peek at entries in a space
@@ -2210,7 +2254,7 @@ type PeekRequest struct {
 
 func (x *PeekRequest) Reset() {
 	*x = PeekRequest{}
-	mi := &file_models_proto_msgTypes[35]
+	mi := &file_models_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2222,7 +2266,7 @@ func (x *PeekRequest) String() string {
 func (*PeekRequest) ProtoMessage() {}
 
 func (x *PeekRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[35]
+	mi := &file_models_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2235,7 +2279,7 @@ func (x *PeekRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PeekRequest.ProtoReflect.Descriptor instead.
 func (*PeekRequest) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{35}
+	return file_models_proto_rawDescGZIP(), []int{36}
 }
 
 // Request to consume entries from a space
@@ -2253,7 +2297,7 @@ type ConsumeSpaceRequest struct {
 
 func (x *ConsumeSpaceRequest) Reset() {
 	*x = ConsumeSpaceRequest{}
-	mi := &file_models_proto_msgTypes[36]
+	mi := &file_models_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2265,7 +2309,7 @@ func (x *ConsumeSpaceRequest) String() string {
 func (*ConsumeSpaceRequest) ProtoMessage() {}
 
 func (x *ConsumeSpaceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[36]
+	mi := &file_models_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2278,7 +2322,7 @@ func (x *ConsumeSpaceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConsumeSpaceRequest.ProtoReflect.Descriptor instead.
 func (*ConsumeSpaceRequest) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{36}
+	return file_models_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *ConsumeSpaceRequest) GetOffsets() map[string]*Offset {
@@ -2321,7 +2365,7 @@ type ConsumePartitionRequest struct {
 
 func (x *ConsumePartitionRequest) Reset() {
 	*x = ConsumePartitionRequest{}
-	mi := &file_models_proto_msgTypes[37]
+	mi := &file_models_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2333,7 +2377,7 @@ func (x *ConsumePartitionRequest) String() string {
 func (*ConsumePartitionRequest) ProtoMessage() {}
 
 func (x *ConsumePartitionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[37]
+	mi := &file_models_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2346,7 +2390,7 @@ func (x *ConsumePartitionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConsumePartitionRequest.ProtoReflect.Descriptor instead.
 func (*ConsumePartitionRequest) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{37}
+	return file_models_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *ConsumePartitionRequest) GetPartition() string {
@@ -2395,7 +2439,7 @@ type MergeRequest struct {
 
 func (x *MergeRequest) Reset() {
 	*x = MergeRequest{}
-	mi := &file_models_proto_msgTypes[38]
+	mi := &file_models_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2407,7 +2451,7 @@ func (x *MergeRequest) String() string {
 func (*MergeRequest) ProtoMessage() {}
 
 func (x *MergeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[38]
+	mi := &file_models_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2420,7 +2464,7 @@ func (x *MergeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MergeRequest.ProtoReflect.Descriptor instead.
 func (*MergeRequest) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{38}
+	return file_models_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *MergeRequest) GetTier() int32 {
@@ -2441,7 +2485,7 @@ type RebuildRequest struct {
 
 func (x *RebuildRequest) Reset() {
 	*x = RebuildRequest{}
-	mi := &file_models_proto_msgTypes[39]
+	mi := &file_models_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2453,7 +2497,7 @@ func (x *RebuildRequest) String() string {
 func (*RebuildRequest) ProtoMessage() {}
 
 func (x *RebuildRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[39]
+	mi := &file_models_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2466,7 +2510,7 @@ func (x *RebuildRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RebuildRequest.ProtoReflect.Descriptor instead.
 func (*RebuildRequest) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{39}
+	return file_models_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *RebuildRequest) GetTier() int32 {
@@ -2491,7 +2535,7 @@ type RebuildResponse struct {
 
 func (x *RebuildResponse) Reset() {
 	*x = RebuildResponse{}
-	mi := &file_models_proto_msgTypes[40]
+	mi := &file_models_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2503,7 +2547,7 @@ func (x *RebuildResponse) String() string {
 func (*RebuildResponse) ProtoMessage() {}
 
 func (x *RebuildResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[40]
+	mi := &file_models_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2516,7 +2560,7 @@ func (x *RebuildResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RebuildResponse.ProtoReflect.Descriptor instead.
 func (*RebuildResponse) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{40}
+	return file_models_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *RebuildResponse) GetPartition() string {
@@ -2551,7 +2595,7 @@ type PruneRequest struct {
 
 func (x *PruneRequest) Reset() {
 	*x = PruneRequest{}
-	mi := &file_models_proto_msgTypes[41]
+	mi := &file_models_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2563,7 +2607,7 @@ func (x *PruneRequest) String() string {
 func (*PruneRequest) ProtoMessage() {}
 
 func (x *PruneRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[41]
+	mi := &file_models_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2576,7 +2620,7 @@ func (x *PruneRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PruneRequest.ProtoReflect.Descriptor instead.
 func (*PruneRequest) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{41}
+	return file_models_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *PruneRequest) GetTier() int32 {
@@ -2646,15 +2690,26 @@ var file_models_proto_rawDesc = []byte{
 	0x0a, 0x08, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04,
 	0x52, 0x08, 0x73, 0x65, 0x71, 0x75, 0x65, 0x6e, 0x63, 0x65, 0x12, 0x1c, 0x0a, 0x09, 0x74, 0x69,
 	0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x09, 0x74,
-	0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x22, 0x8f, 0x01, 0x0a, 0x09, 0x4f, 0x66, 0x66,
-	0x73, 0x65, 0x74, 0x4d, 0x61, 0x70, 0x12, 0x37, 0x0a, 0x07, 0x6f, 0x66, 0x66, 0x73, 0x65, 0x74,
-	0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1d, 0x2e, 0x77, 0x6f, 0x6f, 0x6c, 0x66, 0x2e,
-	0x4f, 0x66, 0x66, 0x73, 0x65, 0x74, 0x4d, 0x61, 0x70, 0x2e, 0x4f, 0x66, 0x66, 0x73, 0x65, 0x74,
-	0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x07, 0x6f, 0x66, 0x66, 0x73, 0x65, 0x74, 0x73, 0x1a,
-	0x49, 0x0a, 0x0c, 0x4f, 0x66, 0x66, 0x73, 0x65, 0x74, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x12,
-	0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65,
-	0x79, 0x12, 0x23, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b,
-	0x32, 0x0d, 0x2e, 0x77, 0x6f, 0x6f, 0x6c, 0x66, 0x2e, 0x4f, 0x66, 0x66, 0x73, 0x65, 0x74, 0x52,
+	0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x22, 0x9d, 0x01, 0x0a, 0x10, 0x50, 0x61, 0x72,
+	0x74, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x4f, 0x66, 0x66, 0x73, 0x65, 0x74, 0x73, 0x12, 0x3e, 0x0a,
+	0x07, 0x6f, 0x66, 0x66, 0x73, 0x65, 0x74, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x24,
+	0x2e, 0x77, 0x6f, 0x6f, 0x6c, 0x66, 0x2e, 0x50, 0x61, 0x72, 0x74, 0x69, 0x74, 0x69, 0x6f, 0x6e,
+	0x4f, 0x66, 0x66, 0x73, 0x65, 0x74, 0x73, 0x2e, 0x4f, 0x66, 0x66, 0x73, 0x65, 0x74, 0x73, 0x45,
+	0x6e, 0x74, 0x72, 0x79, 0x52, 0x07, 0x6f, 0x66, 0x66, 0x73, 0x65, 0x74, 0x73, 0x1a, 0x49, 0x0a,
+	0x0c, 0x4f, 0x66, 0x66, 0x73, 0x65, 0x74, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x10, 0x0a,
+	0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12,
+	0x23, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0d,
+	0x2e, 0x77, 0x6f, 0x6f, 0x6c, 0x66, 0x2e, 0x4f, 0x66, 0x66, 0x73, 0x65, 0x74, 0x52, 0x05, 0x76,
+	0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x22, 0x9f, 0x01, 0x0a, 0x0c, 0x53, 0x70, 0x61,
+	0x63, 0x65, 0x4f, 0x66, 0x66, 0x73, 0x65, 0x74, 0x73, 0x12, 0x3a, 0x0a, 0x07, 0x6f, 0x66, 0x66,
+	0x73, 0x65, 0x74, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x20, 0x2e, 0x77, 0x6f, 0x6f,
+	0x6c, 0x66, 0x2e, 0x53, 0x70, 0x61, 0x63, 0x65, 0x4f, 0x66, 0x66, 0x73, 0x65, 0x74, 0x73, 0x2e,
+	0x4f, 0x66, 0x66, 0x73, 0x65, 0x74, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x07, 0x6f, 0x66,
+	0x66, 0x73, 0x65, 0x74, 0x73, 0x1a, 0x53, 0x0a, 0x0c, 0x4f, 0x66, 0x66, 0x73, 0x65, 0x74, 0x73,
+	0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x2d, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65,
+	0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x17, 0x2e, 0x77, 0x6f, 0x6f, 0x6c, 0x66, 0x2e, 0x50,
+	0x61, 0x72, 0x74, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x4f, 0x66, 0x66, 0x73, 0x65, 0x74, 0x73, 0x52,
 	0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x22, 0x82, 0x01, 0x0a, 0x0d, 0x45,
 	0x6e, 0x74, 0x72, 0x79, 0x45, 0x6e, 0x76, 0x65, 0x6c, 0x6f, 0x70, 0x65, 0x12, 0x4d, 0x0a, 0x14,
 	0x70, 0x61, 0x72, 0x74, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69,
@@ -2884,7 +2939,7 @@ func file_models_proto_rawDescGZIP() []byte {
 	return file_models_proto_rawDescData
 }
 
-var file_models_proto_msgTypes = make([]protoimpl.MessageInfo, 46)
+var file_models_proto_msgTypes = make([]protoimpl.MessageInfo, 48)
 var file_models_proto_goTypes = []any{
 	(*SpaceDescriptor)(nil),         // 0: woolf.SpaceDescriptor
 	(*PartitionDescriptor)(nil),     // 1: woolf.PartitionDescriptor
@@ -2892,67 +2947,71 @@ var file_models_proto_goTypes = []any{
 	(*PageDescriptor)(nil),          // 3: woolf.PageDescriptor
 	(*Entry)(nil),                   // 4: woolf.Entry
 	(*Offset)(nil),                  // 5: woolf.Offset
-	(*OffsetMap)(nil),               // 6: woolf.OffsetMap
-	(*EntryEnvelope)(nil),           // 7: woolf.EntryEnvelope
-	(*Page)(nil),                    // 8: woolf.Page
-	(*PageIndexEntry)(nil),          // 9: woolf.PageIndexEntry
-	(*Manifest)(nil),                // 10: woolf.Manifest
-	(*GetSpacesArgs)(nil),           // 11: woolf.GetSpacesArgs
-	(*DeleteSpaceArgs)(nil),         // 12: woolf.DeleteSpaceArgs
-	(*GetPartitionsArgs)(nil),       // 13: woolf.GetPartitionsArgs
-	(*GetPartitionArgs)(nil),        // 14: woolf.GetPartitionArgs
-	(*CreatePartitionArgs)(nil),     // 15: woolf.CreatePartitionArgs
-	(*DeletePartitionArgs)(nil),     // 16: woolf.DeletePartitionArgs
-	(*CreateTierArgs)(nil),          // 17: woolf.CreateTierArgs
-	(*ProduceArgs)(nil),             // 18: woolf.ProduceArgs
-	(*ConsumeSpaceArgs)(nil),        // 19: woolf.ConsumeSpaceArgs
-	(*ConsumePartitionArgs)(nil),    // 20: woolf.ConsumePartitionArgs
-	(*PeekArgs)(nil),                // 21: woolf.PeekArgs
-	(*MergeArgs)(nil),               // 22: woolf.MergeArgs
-	(*PruneArgs)(nil),               // 23: woolf.PruneArgs
-	(*RebuildArgs)(nil),             // 24: woolf.RebuildArgs
-	(*ReadPageArgs)(nil),            // 25: woolf.ReadPageArgs
-	(*WritePageArgs)(nil),           // 26: woolf.WritePageArgs
-	(*DeletePageArgs)(nil),          // 27: woolf.DeletePageArgs
-	(*GetPagesArgs)(nil),            // 28: woolf.GetPagesArgs
-	(*GetStatusArgs)(nil),           // 29: woolf.GetStatusArgs
-	(*GetSpacesRequest)(nil),        // 30: woolf.GetSpacesRequest
-	(*GetPartitionsRequest)(nil),    // 31: woolf.GetPartitionsRequest
-	(*GetStatusRequest)(nil),        // 32: woolf.GetStatusRequest
-	(*StatusResponse)(nil),          // 33: woolf.StatusResponse
-	(*CreatePartitionRequest)(nil),  // 34: woolf.CreatePartitionRequest
-	(*PeekRequest)(nil),             // 35: woolf.PeekRequest
-	(*ConsumeSpaceRequest)(nil),     // 36: woolf.ConsumeSpaceRequest
-	(*ConsumePartitionRequest)(nil), // 37: woolf.ConsumePartitionRequest
-	(*MergeRequest)(nil),            // 38: woolf.MergeRequest
-	(*RebuildRequest)(nil),          // 39: woolf.RebuildRequest
-	(*RebuildResponse)(nil),         // 40: woolf.RebuildResponse
-	(*PruneRequest)(nil),            // 41: woolf.PruneRequest
-	nil,                             // 42: woolf.Entry.MetadataEntry
-	nil,                             // 43: woolf.OffsetMap.OffsetsEntry
-	nil,                             // 44: woolf.ConsumeSpaceArgs.OffsetsEntry
-	nil,                             // 45: woolf.ConsumeSpaceRequest.OffsetsEntry
+	(*PartitionOffsets)(nil),        // 6: woolf.PartitionOffsets
+	(*SpaceOffsets)(nil),            // 7: woolf.SpaceOffsets
+	(*EntryEnvelope)(nil),           // 8: woolf.EntryEnvelope
+	(*Page)(nil),                    // 9: woolf.Page
+	(*PageIndexEntry)(nil),          // 10: woolf.PageIndexEntry
+	(*Manifest)(nil),                // 11: woolf.Manifest
+	(*GetSpacesArgs)(nil),           // 12: woolf.GetSpacesArgs
+	(*DeleteSpaceArgs)(nil),         // 13: woolf.DeleteSpaceArgs
+	(*GetPartitionsArgs)(nil),       // 14: woolf.GetPartitionsArgs
+	(*GetPartitionArgs)(nil),        // 15: woolf.GetPartitionArgs
+	(*CreatePartitionArgs)(nil),     // 16: woolf.CreatePartitionArgs
+	(*DeletePartitionArgs)(nil),     // 17: woolf.DeletePartitionArgs
+	(*CreateTierArgs)(nil),          // 18: woolf.CreateTierArgs
+	(*ProduceArgs)(nil),             // 19: woolf.ProduceArgs
+	(*ConsumeSpaceArgs)(nil),        // 20: woolf.ConsumeSpaceArgs
+	(*ConsumePartitionArgs)(nil),    // 21: woolf.ConsumePartitionArgs
+	(*PeekArgs)(nil),                // 22: woolf.PeekArgs
+	(*MergeArgs)(nil),               // 23: woolf.MergeArgs
+	(*PruneArgs)(nil),               // 24: woolf.PruneArgs
+	(*RebuildArgs)(nil),             // 25: woolf.RebuildArgs
+	(*ReadPageArgs)(nil),            // 26: woolf.ReadPageArgs
+	(*WritePageArgs)(nil),           // 27: woolf.WritePageArgs
+	(*DeletePageArgs)(nil),          // 28: woolf.DeletePageArgs
+	(*GetPagesArgs)(nil),            // 29: woolf.GetPagesArgs
+	(*GetStatusArgs)(nil),           // 30: woolf.GetStatusArgs
+	(*GetSpacesRequest)(nil),        // 31: woolf.GetSpacesRequest
+	(*GetPartitionsRequest)(nil),    // 32: woolf.GetPartitionsRequest
+	(*GetStatusRequest)(nil),        // 33: woolf.GetStatusRequest
+	(*StatusResponse)(nil),          // 34: woolf.StatusResponse
+	(*CreatePartitionRequest)(nil),  // 35: woolf.CreatePartitionRequest
+	(*PeekRequest)(nil),             // 36: woolf.PeekRequest
+	(*ConsumeSpaceRequest)(nil),     // 37: woolf.ConsumeSpaceRequest
+	(*ConsumePartitionRequest)(nil), // 38: woolf.ConsumePartitionRequest
+	(*MergeRequest)(nil),            // 39: woolf.MergeRequest
+	(*RebuildRequest)(nil),          // 40: woolf.RebuildRequest
+	(*RebuildResponse)(nil),         // 41: woolf.RebuildResponse
+	(*PruneRequest)(nil),            // 42: woolf.PruneRequest
+	nil,                             // 43: woolf.Entry.MetadataEntry
+	nil,                             // 44: woolf.PartitionOffsets.OffsetsEntry
+	nil,                             // 45: woolf.SpaceOffsets.OffsetsEntry
+	nil,                             // 46: woolf.ConsumeSpaceArgs.OffsetsEntry
+	nil,                             // 47: woolf.ConsumeSpaceRequest.OffsetsEntry
 }
 var file_models_proto_depIdxs = []int32{
-	42, // 0: woolf.Entry.metadata:type_name -> woolf.Entry.MetadataEntry
-	43, // 1: woolf.OffsetMap.offsets:type_name -> woolf.OffsetMap.OffsetsEntry
-	1,  // 2: woolf.EntryEnvelope.partition_descriptor:type_name -> woolf.PartitionDescriptor
-	4,  // 3: woolf.EntryEnvelope.entry:type_name -> woolf.Entry
-	9,  // 4: woolf.Page.index:type_name -> woolf.PageIndexEntry
-	8,  // 5: woolf.Manifest.pages:type_name -> woolf.Page
-	8,  // 6: woolf.Manifest.last_page:type_name -> woolf.Page
-	4,  // 7: woolf.ProduceArgs.entries:type_name -> woolf.Entry
-	44, // 8: woolf.ConsumeSpaceArgs.offsets:type_name -> woolf.ConsumeSpaceArgs.OffsetsEntry
-	4,  // 9: woolf.WritePageArgs.entries:type_name -> woolf.Entry
-	45, // 10: woolf.ConsumeSpaceRequest.offsets:type_name -> woolf.ConsumeSpaceRequest.OffsetsEntry
-	5,  // 11: woolf.OffsetMap.OffsetsEntry.value:type_name -> woolf.Offset
-	5,  // 12: woolf.ConsumeSpaceArgs.OffsetsEntry.value:type_name -> woolf.Offset
-	5,  // 13: woolf.ConsumeSpaceRequest.OffsetsEntry.value:type_name -> woolf.Offset
-	14, // [14:14] is the sub-list for method output_type
-	14, // [14:14] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	43, // 0: woolf.Entry.metadata:type_name -> woolf.Entry.MetadataEntry
+	44, // 1: woolf.PartitionOffsets.offsets:type_name -> woolf.PartitionOffsets.OffsetsEntry
+	45, // 2: woolf.SpaceOffsets.offsets:type_name -> woolf.SpaceOffsets.OffsetsEntry
+	1,  // 3: woolf.EntryEnvelope.partition_descriptor:type_name -> woolf.PartitionDescriptor
+	4,  // 4: woolf.EntryEnvelope.entry:type_name -> woolf.Entry
+	10, // 5: woolf.Page.index:type_name -> woolf.PageIndexEntry
+	9,  // 6: woolf.Manifest.pages:type_name -> woolf.Page
+	9,  // 7: woolf.Manifest.last_page:type_name -> woolf.Page
+	4,  // 8: woolf.ProduceArgs.entries:type_name -> woolf.Entry
+	46, // 9: woolf.ConsumeSpaceArgs.offsets:type_name -> woolf.ConsumeSpaceArgs.OffsetsEntry
+	4,  // 10: woolf.WritePageArgs.entries:type_name -> woolf.Entry
+	47, // 11: woolf.ConsumeSpaceRequest.offsets:type_name -> woolf.ConsumeSpaceRequest.OffsetsEntry
+	5,  // 12: woolf.PartitionOffsets.OffsetsEntry.value:type_name -> woolf.Offset
+	6,  // 13: woolf.SpaceOffsets.OffsetsEntry.value:type_name -> woolf.PartitionOffsets
+	5,  // 14: woolf.ConsumeSpaceArgs.OffsetsEntry.value:type_name -> woolf.Offset
+	5,  // 15: woolf.ConsumeSpaceRequest.OffsetsEntry.value:type_name -> woolf.Offset
+	16, // [16:16] is the sub-list for method output_type
+	16, // [16:16] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_models_proto_init() }
@@ -2966,7 +3025,7 @@ func file_models_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_models_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   46,
+			NumMessages:   48,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
