@@ -153,6 +153,12 @@ func Chunk[T any, TSize constraints.Ordered](
 	}
 }
 
+func ChunkByCount[T any](in Enumerator[T], count int) Enumerator[Enumerator[T]] {
+	return Chunk(in, count, func(item T) (int, error) {
+		return 1, nil
+	})
+}
+
 // Collect gathers all chunks into a slice of slices
 func Collect[T any](enumerator Enumerator[Enumerator[T]]) ([][]T, error) {
 	var chunks [][]T
