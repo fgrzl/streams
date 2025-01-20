@@ -467,9 +467,11 @@ func (x *Offset) GetTimestamp() int64 {
 	return 0
 }
 
+// A structure used for tracking all of the partition offsets in a space
 type PartitionOffsets struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Offsets       map[string]*Offset     `protobuf:"bytes,1,rep,name=offsets,proto3" json:"offsets,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Map of offsets by partition
+	Offsets       map[string]*Offset `protobuf:"bytes,1,rep,name=offsets,proto3" json:"offsets,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -511,6 +513,7 @@ func (x *PartitionOffsets) GetOffsets() map[string]*Offset {
 	return nil
 }
 
+// A structure used for tracking all of the partition offsets in a map of spaces
 type SpaceOffsets struct {
 	state         protoimpl.MessageState       `protogen:"open.v1"`
 	Offsets       map[string]*PartitionOffsets `protobuf:"bytes,1,rep,name=offsets,proto3" json:"offsets,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`

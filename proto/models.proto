@@ -103,10 +103,13 @@ message Offset {
     int64 timestamp = 2;
 }
 
+// A structure used for tracking all of the partition offsets in a space
 message PartitionOffsets {
+    // Map of offsets by partition
      map<string, Offset> offsets = 1;
 }
 
+// A structure used for tracking all of the partition offsets in a map of spaces
 message SpaceOffsets {
      map<string, PartitionOffsets> offsets = 1;
 }
