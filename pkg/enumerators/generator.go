@@ -5,14 +5,14 @@ import "errors"
 // Generator generates values continuously.
 type Generator[T any] struct {
 	Enumerator[T]
-	generateFunc func() T
+	generateFunc func() (T, error)
 	current      T
 	err          error
 	disposed     bool
 }
 
 // Create a new generator.
-func NewGenerator[T any](generateFunc func() T) Enumerator[T] {
+func NewGenerator[T any](generateFunc func() (T, error)) Enumerator[T] {
 	return &Generator[T]{generateFunc: generateFunc}
 }
 
@@ -29,7 +29,11 @@ func (ce *Generator[T]) MoveNext() bool {
 	}
 
 	// Generate the next value
-	ce.current = ce.generateFunc()
+	ce.current, ce.err = ce.generateFunc()
+
+	if ce.err != nil {
+		return false
+	}
 	return true
 }
 
@@ -39,7 +43,7 @@ func (ce *Generator[T]) Current() (T, error) {
 		var zero T
 		return zero, errors.New("enumerator disposed")
 	}
-	return ce.current, nil
+	return ce.current, ce.err
 }
 
 // Err returns the last error.
