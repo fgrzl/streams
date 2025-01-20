@@ -12,6 +12,7 @@ type Enumerator[T any] interface {
 	Err() error
 }
 
+// consume the enumerator to completion. This will dispose the enumerator when done.
 func Consume[T any](e Enumerator[T]) error {
 	defer e.Dispose()
 	for e.MoveNext() {
