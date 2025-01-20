@@ -12,6 +12,13 @@ type Enumerator[T any] interface {
 	Err() error
 }
 
+func Consume[T any](e Enumerator[T]) error {
+	for e.MoveNext() {
+		// do nothing
+	}
+	return e.Err()
+}
+
 // Empty handles cases where no enumerators are provided
 type emptyEnumerator[T any] struct{}
 
