@@ -486,6 +486,21 @@ func (s *serviceImpl) Merge(ctx context.Context, args *models.MergeArgs) enumera
 		return enumerators.Error[*models.PageDescriptor](fmt.Errorf("invalid source tier"))
 	}
 
+	// Retrieve source manifest
+	sourceRepo := s.manager.GetManifestRepository(space, partition, sourceTier)
+	sourceStore := s.manager.GetStore(tier0)
+	sourceManifest, err := sourceRepo.GetManifest()
+	if err != nil {
+		return enumerators.Error[*models.PageDescriptor](err)
+	}
+	if sourceManifest == nil {
+		return enumerators.Error[*models.PageDescriptor](errors.New("no such manifest"))
+	}
+
+	if len(sourceManifest.Pages) < 3 {
+		return enumerators.Empty[*models.PageDescriptor]()
+	}
+
 	// Validate target tier
 	tiers := s.manager.GetTiers()
 	targetTier := sourceTier + 1
@@ -506,17 +521,6 @@ func (s *serviceImpl) Merge(ctx context.Context, args *models.MergeArgs) enumera
 	}
 	targetMinPageSize := models.GetMinPageSize(targetTier)
 	targetMaxPageSize := models.GetMaxPageSize(targetTier)
-
-	// Retrieve source manifest
-	sourceRepo := s.manager.GetManifestRepository(space, partition, sourceTier)
-	sourceStore := s.manager.GetStore(tier0)
-	sourceManifest, err := sourceRepo.GetManifest()
-	if err != nil {
-		return enumerators.Error[*models.PageDescriptor](err)
-	}
-	if sourceManifest == nil {
-		return enumerators.Error[*models.PageDescriptor](errors.New("no such manifest"))
-	}
 
 	lastSequence := targetManifest.LastPage.LastSequence
 	pageNumber := targetManifest.LastPage.Number + 1
