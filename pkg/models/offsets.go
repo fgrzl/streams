@@ -67,6 +67,10 @@ func (o *SpaceOffsets) Set(space, partition string, offset *Offset) {
 	partitionOffsets.Set(partition, offset)
 }
 
+func (o *SpaceOffsets) SetOffsetFromEnvelope(envelope *EntryEnvelope) {
+	o.Set(envelope.PartitionDescriptor.Space, envelope.PartitionDescriptor.Partition, envelope.GetOffset())
+}
+
 func (o *SpaceOffsets) Marshal() []byte {
 	bytes, err := proto.Marshal(o)
 	if err != nil {

@@ -25,3 +25,11 @@ const (
 	ERROR_ON_DUPLICATE = "ERROR_ON_DUPLICATE"
 	ALL_OR_NONE        = "ALL_OR_NONE"
 )
+
+func (e *Entry) GetOffset() *Offset {
+	return &Offset{Sequence: e.Sequence, Timestamp: e.Timestamp}
+}
+
+func (ee *EntryEnvelope) GetOffset() *Offset {
+	return ee.GetOffset()
+}
