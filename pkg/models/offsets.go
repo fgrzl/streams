@@ -63,6 +63,7 @@ func (o *SpaceOffsets) Set(space, partition string, offset *Offset) {
 		partitionOffsets = &PartitionOffsets{
 			Offsets: make(map[string]*Offset),
 		}
+		o.Offsets[space] = partitionOffsets
 	}
 	partitionOffsets.Set(partition, offset)
 }
