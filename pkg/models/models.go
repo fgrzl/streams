@@ -31,5 +31,9 @@ func (e *Entry) GetOffset() *Offset {
 }
 
 func (ee *EntryEnvelope) GetOffset() *Offset {
-	return ee.GetOffset()
+	e := ee.Entry
+	if e == nil {
+		return &Offset{}
+	}
+	return e.GetOffset()
 }
