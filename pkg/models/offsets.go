@@ -7,7 +7,9 @@ import (
 )
 
 func NewPartitionOffsets(data []byte) *PartitionOffsets {
-	offsets := &PartitionOffsets{}
+	offsets := &PartitionOffsets{
+		Offsets: make(map[string]*Offset),
+	}
 	return offsets.Unmarshal(data)
 }
 
@@ -37,7 +39,9 @@ func (o *PartitionOffsets) Unmarshal(data []byte) *PartitionOffsets {
 }
 
 func NewSpaceOffsets(data []byte) *SpaceOffsets {
-	offsets := &SpaceOffsets{}
+	offsets := &SpaceOffsets{
+		Offsets: make(map[string]*PartitionOffsets),
+	}
 	return offsets.Unmarshal(data)
 }
 
@@ -58,6 +62,11 @@ func (o *SpaceOffsets) GetOffsetMap(space string) map[string]*Offset {
 }
 
 func (o *SpaceOffsets) Set(space, partition string, offset *Offset) {
+
+	if o.Offsets == nil {
+		o.Offsets = make(map[string]*PartitionOffsets)
+	}
+
 	partitionOffsets, ok := o.Offsets[space]
 	if !ok {
 		partitionOffsets = &PartitionOffsets{
