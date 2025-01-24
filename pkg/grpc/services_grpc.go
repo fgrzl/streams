@@ -25,7 +25,7 @@ func StartServer(ctx context.Context, ready chan struct{}, hosts ...string) {
 	var listeners []net.Listener
 	grpcServer := grpc.NewServer()
 
-	woolfServer := NewWoolfServer()
+	woolfServer := NewWoolfServer(nil)
 	defer woolfServer.Dispose()
 
 	RegisterWoolfServer(grpcServer, woolfServer)
@@ -90,8 +90,8 @@ type implementedWolfServer struct {
 }
 
 // NewWoolfServer creates a new WoolfServerImpl instance.
-func NewWoolfServer() WoolfGrpcServer {
-	return &implementedWolfServer{service: services.NewService(services.DefaultServiceOptions)}
+func NewWoolfServer(options *services.ServiceOptions) WoolfGrpcServer {
+	return &implementedWolfServer{service: services.NewService(options)}
 }
 
 func (s *implementedWolfServer) Dispose() {
