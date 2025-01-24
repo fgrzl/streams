@@ -90,8 +90,11 @@ message Entry {
     // The actual data content of the entry
     bytes payload = 6;
 
+    // The discriminator for the entry type
+    string discriminator = 7;
+
     // Additional key-value pairs for storing custom metadata
-    map<string, string> metadata = 7;
+    map<string, string> metadata = 8;
 }
 
 // Offset structure used for tracking position in a stream

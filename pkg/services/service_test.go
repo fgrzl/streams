@@ -13,6 +13,7 @@ import (
 	"github.com/fgrzl/streams/pkg/enumerators"
 	"github.com/fgrzl/streams/pkg/models"
 	"github.com/fgrzl/streams/pkg/services"
+	"github.com/fgrzl/streams/pkg/stores"
 	"github.com/fgrzl/streams/pkg/util"
 	"github.com/fgrzl/streams/test"
 	"github.com/google/uuid"
@@ -27,11 +28,19 @@ func setupService(t *testing.T) (context.Context, services.Service) {
 	os.MkdirAll(tmp, 0755)
 
 	config.SetFileSystemPath(tmp)
-	service := services.NewService(&services.ServiceOptions{
+
+	options := &services.ServiceOptions{
 		EnableBackgroundMerge:   false,
 		EnableBackgroundPrune:   false,
 		EnableBackgroundRebuild: false,
-	})
+	}
+	options.Stores = make(map[int32]stores.StreamStore, 3)
+	store := stores.NewFileSystemStore()
+	options.Stores[0] = store
+	options.Stores[1] = store
+	options.Stores[2] = store
+
+	service := services.NewService(options)
 
 	t.Cleanup(func() {
 		service.Dispose()

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"math"
 	"sync"
 
@@ -16,8 +17,6 @@ import (
 	"github.com/google/uuid"
 )
 
-//// EVENTS
-
 type PageWritten struct {
 	Space     string
 	Partition string
@@ -25,7 +24,6 @@ type PageWritten struct {
 	Number    int32
 }
 
-// // IMPL
 const tier0 = int32(0)
 
 type serviceImpl struct {
@@ -39,6 +37,7 @@ type ServiceOptions struct {
 	EnableBackgroundMerge   bool
 	EnableBackgroundPrune   bool
 	EnableBackgroundRebuild bool
+	Stores                  map[int32]stores.StreamStore
 }
 
 // The default services options load the values from the environment variables
@@ -53,24 +52,30 @@ func NewService(options *ServiceOptions) Service {
 
 	if options == nil {
 		options = DefaultServiceOptions
+		options.Stores = make(map[int32]stores.StreamStore, 3)
+		store := stores.NewFileSystemStore()
+		options.Stores[0] = store
+		options.Stores[1] = store
+		options.Stores[2] = store
+	} else {
+
+		if len(options.Stores) < 2 || len(options.Stores) > 6 {
+			log.Fatalln("stores should have at least 2 tiers and no more than 6 tiers")
+		}
+		for i := 0; i < len(options.Stores); i++ {
+			if _, ok := options.Stores[int32(i)]; !ok {
+				log.Fatalf("store for tier %d is not configured\n", i)
+			}
+		}
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-
-	// todo: based on how the tiers are configured create a single instance of each type of store
-	// todo: assign the correct instance to each tier
-
-	storeMap := make(map[int32]stores.StreamStore, 3)
-	store := stores.NewFileSystemStore()
-	storeMap[0] = store
-	storeMap[1] = store
-	storeMap[2] = store
 
 	// Track which stores have been scavenged
 	scavengedStores := make(map[stores.StreamStore]bool)
 
 	// Call Scavenge for each unique store
-	for _, store := range storeMap {
+	for _, store := range options.Stores {
 		if !scavengedStores[store] {
 			store.Scavenge(ctx)
 			scavengedStores[store] = true
@@ -78,7 +83,7 @@ func NewService(options *ServiceOptions) Service {
 	}
 
 	s := &serviceImpl{
-		manager:      managers.NewManager(storeMap),
+		manager:      managers.NewManager(options.Stores),
 		cancel:       cancel,
 		backgroundCh: make(chan any, 100),
 	}

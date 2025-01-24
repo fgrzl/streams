@@ -25,22 +25,22 @@ func init() {
 	RegisterStore(FILE_SYSTEM, NewFileSystemStore)
 }
 
-// FileSystemStreamStore represents a store for file-based streams
-type FileSystemStreamStore struct {
+// FileSystemStore represents a store for file-based streams
+type FileSystemStore struct {
 	path string
 }
 
 // NewFileSystemStore creates a new instance of FileSystemPartitionStore
 func NewFileSystemStore() StreamStore {
-	return &FileSystemStreamStore{path: config.GetFileSystemPath()}
+	return &FileSystemStore{path: config.GetFileSystemPath()}
 }
 
-func (fs *FileSystemStreamStore) CreateTier(ctx context.Context, args *models.CreateTierArgs) error {
+func (fs *FileSystemStore) CreateTier(ctx context.Context, args *models.CreateTierArgs) error {
 	tierPath := fs.getTierDirectoryPath(args.Space, args.Partition, args.Tier)
 	return os.MkdirAll(tierPath, 0755)
 }
 
-func (fs *FileSystemStreamStore) GetSpaces(ctx context.Context, args *models.GetSpacesArgs) enumerators.Enumerator[string] {
+func (fs *FileSystemStore) GetSpaces(ctx context.Context, args *models.GetSpacesArgs) enumerators.Enumerator[string] {
 	path := fs.path
 	buf, err := os.ReadDir(path)
 	if err != nil {
@@ -59,7 +59,7 @@ func (fs *FileSystemStreamStore) GetSpaces(ctx context.Context, args *models.Get
 		})
 }
 
-func (fs *FileSystemStreamStore) GetPartitions(ctx context.Context, args *models.GetPartitionsArgs) enumerators.Enumerator[string] {
+func (fs *FileSystemStore) GetPartitions(ctx context.Context, args *models.GetPartitionsArgs) enumerators.Enumerator[string] {
 	path := fs.getSpaceDirectoryPath(args.Space)
 	buf, err := os.ReadDir(path)
 	if err != nil {
@@ -78,7 +78,7 @@ func (fs *FileSystemStreamStore) GetPartitions(ctx context.Context, args *models
 		})
 }
 
-func (fs *FileSystemStreamStore) GetPages(ctx context.Context, args *models.GetPagesArgs) enumerators.Enumerator[int32] {
+func (fs *FileSystemStore) GetPages(ctx context.Context, args *models.GetPagesArgs) enumerators.Enumerator[int32] {
 	// Get the directory path for the tier
 	dir := fs.getTierDirectoryPath(args.Space, args.Partition, args.Tier)
 	entries, err := os.ReadDir(dir)
@@ -122,7 +122,7 @@ func (fs *FileSystemStreamStore) GetPages(ctx context.Context, args *models.GetP
 }
 
 // DeletePartition deletes the entire stream directory
-func (fs *FileSystemStreamStore) DeleteSpace(ctx context.Context, args *models.DeleteSpaceArgs) error {
+func (fs *FileSystemStore) DeleteSpace(ctx context.Context, args *models.DeleteSpaceArgs) error {
 
 	path := fs.getSpaceDirectoryPath(args.Space)
 	err := os.RemoveAll(path)
@@ -133,7 +133,7 @@ func (fs *FileSystemStreamStore) DeleteSpace(ctx context.Context, args *models.D
 }
 
 // DeletePartition deletes the entire stream directory
-func (fs *FileSystemStreamStore) DeletePartition(ctx context.Context, args *models.DeletePartitionArgs) error {
+func (fs *FileSystemStore) DeletePartition(ctx context.Context, args *models.DeletePartitionArgs) error {
 
 	path := fs.getPartitionDirectoryPath(args.Space, args.Partition)
 	err := os.RemoveAll(path)
@@ -144,7 +144,7 @@ func (fs *FileSystemStreamStore) DeletePartition(ctx context.Context, args *mode
 }
 
 // WriteManifest writes the manifest for a stream
-func (fs *FileSystemStreamStore) WriteManifest(ctx context.Context, args *models.WriteManifestArgs) (models.ConcurrencyTag, error) {
+func (fs *FileSystemStore) WriteManifest(ctx context.Context, args *models.WriteManifestArgs) (models.ConcurrencyTag, error) {
 
 	tierPath := fs.getTierDirectoryPath(args.Space, args.Partition, args.Tier)
 	fileName := fs.getManifestFilePath(tierPath)
@@ -198,7 +198,7 @@ func (fs *FileSystemStreamStore) WriteManifest(ctx context.Context, args *models
 }
 
 // ReadManifest gets the manifest for a stream
-func (fs *FileSystemStreamStore) ReadManifest(ctx context.Context, args *models.ReadManifestArgs) (*models.ManifestWrapper, error) {
+func (fs *FileSystemStore) ReadManifest(ctx context.Context, args *models.ReadManifestArgs) (*models.ManifestWrapper, error) {
 	// Initialize the return value
 	wrapper := &models.ManifestWrapper{}
 
@@ -245,7 +245,7 @@ func (fs *FileSystemStreamStore) ReadManifest(ctx context.Context, args *models.
 }
 
 // WriteRecords writes records to a page file
-func (fs *FileSystemStreamStore) WritePage(ctx context.Context, args *models.WritePageArgs, entries enumerators.Enumerator[*models.Entry]) (*models.Page, error) {
+func (fs *FileSystemStore) WritePage(ctx context.Context, args *models.WritePageArgs, entries enumerators.Enumerator[*models.Entry]) (*models.Page, error) {
 	// Determine the file paths
 	tierPath := fs.getTierDirectoryPath(args.Space, args.Partition, args.Tier)
 	fileName := fs.getPageFilePath(tierPath, args.Number)
@@ -303,7 +303,7 @@ func (fs *FileSystemStreamStore) WritePage(ctx context.Context, args *models.Wri
 	return page, nil
 }
 
-func (fs *FileSystemStreamStore) ReadPage(ctx context.Context, args *models.ReadPageArgs) enumerators.Enumerator[*models.Entry] {
+func (fs *FileSystemStore) ReadPage(ctx context.Context, args *models.ReadPageArgs) enumerators.Enumerator[*models.Entry] {
 
 	tierPath := fs.getTierDirectoryPath(args.Space, args.Partition, args.Tier)
 	filePath := fs.getPageFilePath(tierPath, args.Number)
@@ -316,7 +316,7 @@ func (fs *FileSystemStreamStore) ReadPage(ctx context.Context, args *models.Read
 }
 
 // DeletePage deletes a page file
-func (fs *FileSystemStreamStore) DeletePage(ctx context.Context, args *models.DeletePageArgs) error {
+func (fs *FileSystemStore) DeletePage(ctx context.Context, args *models.DeletePageArgs) error {
 	tierPath := fs.getTierDirectoryPath(args.Space, args.Partition, args.Tier)
 	filePath := fs.getPageFilePath(tierPath, args.Number)
 	err := os.Remove(filePath)
@@ -330,36 +330,36 @@ func (fs *FileSystemStreamStore) DeletePage(ctx context.Context, args *models.De
 	return nil
 }
 
+func (fs *FileSystemStore) Scavenge(ctx context.Context) error {
+	return fs.scavengeDirectory(fs.path)
+}
+
 // Helper function to get the path for a page file
-func (fs *FileSystemStreamStore) getPageFilePath(tierPath string, number int32) string {
+func (fs *FileSystemStore) getPageFilePath(tierPath string, number int32) string {
 	return filepath.Join(tierPath, fmt.Sprintf("%020d.pg", number))
 }
 
 // Helper function to get the path for the manifest file
-func (fs *FileSystemStreamStore) getManifestFilePath(tierPath string) string {
+func (fs *FileSystemStore) getManifestFilePath(tierPath string) string {
 	return filepath.Join(tierPath, ".manifest")
 }
 
-func (fs *FileSystemStreamStore) getTierDirectoryPath(space string, partition string, tier int32) string {
+func (fs *FileSystemStore) getTierDirectoryPath(space string, partition string, tier int32) string {
 	path := filepath.Join(fs.path, space, partition, fmt.Sprintf("%d", tier))
 	return path
 }
 
-func (fs *FileSystemStreamStore) getSpaceDirectoryPath(space string) string {
+func (fs *FileSystemStore) getSpaceDirectoryPath(space string) string {
 	path := filepath.Join(fs.path, space)
 	return path
 }
 
-func (fs *FileSystemStreamStore) getPartitionDirectoryPath(space string, partition string) string {
+func (fs *FileSystemStore) getPartitionDirectoryPath(space string, partition string) string {
 	path := filepath.Join(fs.path, space, partition)
 	return path
 }
 
-func (fs *FileSystemStreamStore) Scavenge(ctx context.Context) error {
-	return fs.scavengeDirectory(fs.path)
-}
-
-func (fs *FileSystemStreamStore) scavengeDirectory(path string) error {
+func (fs *FileSystemStore) scavengeDirectory(path string) error {
 	entries, err := os.ReadDir(path)
 	if err != nil {
 		return fmt.Errorf("failed to read directory: %w", err)
