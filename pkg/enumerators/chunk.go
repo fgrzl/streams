@@ -179,7 +179,7 @@ func Collect[T any](enumerator Enumerator[Enumerator[T]]) ([][]T, error) {
 		}
 		chunks = append(chunks, chunkItems)
 
-		chunk, err = enumerator.Current()
+		_, err = enumerator.Current()
 		if err != nil {
 			return chunks, err
 		}

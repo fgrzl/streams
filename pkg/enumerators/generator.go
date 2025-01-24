@@ -31,10 +31,7 @@ func (ce *Generator[T]) MoveNext() bool {
 	// Generate the next value
 	ce.current, ce.err = ce.generateFunc()
 
-	if ce.err != nil {
-		return false
-	}
-	return true
+	return ce.err == nil
 }
 
 // Current returns the current value or an error if disposed.
