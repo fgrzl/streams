@@ -6,7 +6,7 @@ import (
 
 type Grouping[T any, G comparable] struct {
 	Enumerator *innerGroupEnumerator[T, G]
-	Group      G
+	Key        G
 }
 
 type GroupingSlice[T any, G comparable] struct {
@@ -38,7 +38,6 @@ func (e *GroupEnumerator[T, G]) MoveNext() bool {
 	}
 
 	if e.currentChunk == nil {
-
 		inner := &innerGroupEnumerator[T, G]{
 			base:    e.base,
 			compute: e.compute,
@@ -50,18 +49,32 @@ func (e *GroupEnumerator[T, G]) MoveNext() bool {
 			if e.err != nil {
 				return false
 			}
+			if inner.exhausted && !inner.pending {
+				// no more items
+				return false
+			}
 		}
 		// reset exhausted flag
 		inner.exhausted = false
 		e.currentChunk = &Grouping[T, G]{
 			Enumerator: inner,
-			Group:      inner.group,
+			Key:        inner.group,
 		}
 		return true
 	}
 
-	if e.currentChunk.Enumerator.exhausted && !e.currentChunk.Enumerator.pending {
-		e.err = e.currentChunk.Enumerator.err
+	inner := e.currentChunk.Enumerator
+	if inner == nil {
+		e.err = errors.New("no inner enumerator")
+		return false
+	}
+
+	if inner.err != nil {
+		e.err = inner.err
+		return false
+	}
+
+	if inner.exhausted && !inner.pending {
 		return false
 	}
 
@@ -71,12 +84,11 @@ func (e *GroupEnumerator[T, G]) MoveNext() bool {
 		}
 	}
 
-	inner := e.currentChunk.Enumerator
 	inner.exhausted = false
 	inner.pending = true
 	e.currentChunk = &Grouping[T, G]{
 		Enumerator: inner,
-		Group:      inner.group,
+		Key:        inner.group,
 	}
 	return true
 }
@@ -180,7 +192,7 @@ func CollectGroupingSlices[T any, G comparable](enumerator Enumerator[*Grouping[
 		}
 
 		groupSlice := &GroupingSlice[T, G]{
-			Group: grouping.Group,
+			Group: grouping.Key,
 		}
 		for grouping.Enumerator.MoveNext() {
 			item, err := grouping.Enumerator.Current()
