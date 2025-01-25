@@ -2,10 +2,6 @@ syntax = "proto3";
 
 package woolf;
 
-//
-// Core Descriptors
-//
-
 // Descriptor for a space
 message SpaceDescriptor {
     // The unique identifier of the space, used to organize related partitions
@@ -66,10 +62,6 @@ message PageDescriptor {
     int64 size = 10;
 }
 
-//
-// Data Structures
-//
-
 // A message representing an entry in the system
 message Entry {
     // A monotonically increasing number that defines the order of entries
@@ -90,11 +82,8 @@ message Entry {
     // The actual data content of the entry
     bytes payload = 6;
 
-    // The discriminator for the entry type
-    string discriminator = 7;
-
     // Additional key-value pairs for storing custom metadata
-    map<string, string> metadata = 8;
+    map<string, string> metadata = 7;
 }
 
 // Offset structure used for tracking position in a stream
@@ -125,10 +114,6 @@ message EntryEnvelope {
     // The entry data
     Entry entry = 2;
 }
-
-//
-// Page Management
-//
 
 // A page containing multiple entries and an index for efficient access
 message Page {
@@ -445,7 +430,3 @@ message PruneRequest {
     // The tier to prune
     int32 tier = 1;
 }
-
-
-
-
