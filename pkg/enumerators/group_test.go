@@ -9,36 +9,23 @@ import (
 )
 
 func TestGroup(t *testing.T) {
-
 	// Arrange
 	source := enumerators.Slice([]int{1, 2, 2, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 5, 1, 1})
-	groupings := enumerators.Group(source, func(i int) (int, error) { return i, nil })
+	groupings := setupSourceAndGroupings(source)
 
 	// Act
 	result, err := enumerators.CollectGroupingSlices(groupings)
 
 	// Assert
-	assert.Nil(t, err)
-	expected := []*enumerators.GroupingSlice[int, int]{
-		{Items: []int{1}, Group: 1},
-		{Items: []int{2, 2}, Group: 2},
-		{Items: []int{3, 3, 3}, Group: 3},
-		{Items: []int{4, 4, 4, 4}, Group: 4},
-		{Items: []int{5, 5, 5, 5, 5}, Group: 5},
-		{Items: []int{1, 1}, Group: 1},
-	}
-
-	assert.Equal(t, expected, result)
+	assertGroupings(t, result, err)
 }
 
 func TestGroupOverChannel(t *testing.T) {
-
 	// Arrange
 	source := enumerators.Channel[int](context.Background(), 1)
-	groupings := enumerators.Group(source, func(i int) (int, error) { return i, nil })
+	groupings := setupSourceAndGroupings(source)
 
 	go func() {
-		//time.Sleep(13 * time.Millisecond)
 		source.Publish(1)
 		source.Publish(2)
 		source.Publish(2)
@@ -63,24 +50,13 @@ func TestGroupOverChannel(t *testing.T) {
 	result, err := enumerators.CollectGroupingSlices(groupings)
 
 	// Assert
-	assert.Nil(t, err)
-	expected := []*enumerators.GroupingSlice[int, int]{
-		{Items: []int{1}, Group: 1},
-		{Items: []int{2, 2}, Group: 2},
-		{Items: []int{3, 3, 3}, Group: 3},
-		{Items: []int{4, 4, 4, 4}, Group: 4},
-		{Items: []int{5, 5, 5, 5, 5}, Group: 5},
-		{Items: []int{1, 1}, Group: 1},
-	}
-
-	assert.Equal(t, expected, result)
+	assertGroupings(t, result, err)
 }
 
 func TestGroupOverEmptyClosedChannel(t *testing.T) {
-
 	// Arrange
 	source := enumerators.Channel[int](context.Background(), 1)
-	groupings := enumerators.Group(source, func(i int) (int, error) { return i, nil })
+	groupings := setupSourceAndGroupings(source)
 
 	go func() {
 		source.Complete()
@@ -92,6 +68,22 @@ func TestGroupOverEmptyClosedChannel(t *testing.T) {
 	// Assert
 	assert.Nil(t, err)
 	var expected []*enumerators.GroupingSlice[int, int]
+	assert.Equal(t, expected, result)
+}
 
+func setupSourceAndGroupings(source enumerators.Enumerator[int]) enumerators.Enumerator[*enumerators.Grouping[int, int]] {
+	return enumerators.Group(source, func(i int) (int, error) { return i, nil })
+}
+
+func assertGroupings(t *testing.T, result []*enumerators.GroupingSlice[int, int], err error) {
+	assert.Nil(t, err)
+	expected := []*enumerators.GroupingSlice[int, int]{
+		{Items: []int{1}, Group: 1},
+		{Items: []int{2, 2}, Group: 2},
+		{Items: []int{3, 3, 3}, Group: 3},
+		{Items: []int{4, 4, 4, 4}, Group: 4},
+		{Items: []int{5, 5, 5, 5, 5}, Group: 5},
+		{Items: []int{1, 1}, Group: 1},
+	}
 	assert.Equal(t, expected, result)
 }
