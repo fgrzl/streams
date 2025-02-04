@@ -2,6 +2,9 @@ module github.com/fgrzl/streams
 
 go 1.23.5
 
+// Retracting all versions below v0.0.11 due to significant updates.
+retract [v0.0.0, v0.0.11]
+
 require (
 	github.com/fgrzl/enumerators v0.0.0-20250204155140-ce80509c4375
 	github.com/google/uuid v1.6.0
