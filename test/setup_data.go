@@ -6,7 +6,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/fgrzl/streams/pkg/enumerators"
+	"github.com/fgrzl/enumerators"
 	"github.com/fgrzl/streams/pkg/models"
 	"github.com/fgrzl/streams/pkg/util"
 	"github.com/google/uuid"

@@ -1,8 +1,9 @@
-package enumerators
+package clients
 
 import (
 	"io"
 
+	"github.com/fgrzl/enumerators"
 	"google.golang.org/grpc"
 )
 
@@ -71,11 +72,11 @@ func (e *clientResponseEnumerator[TReq, TRes]) Dispose() {
 }
 
 // A new enumerator of the responses
-func NewServerStreamingClientResponseEnumerator[TRes any](stream grpc.ServerStreamingClient[TRes]) Enumerator[*TRes] {
+func NewServerStreamingClientResponseEnumerator[TRes any](stream grpc.ServerStreamingClient[TRes]) enumerators.Enumerator[*TRes] {
 	return &clientEnumerator[TRes]{stream: stream}
 }
 
 // A new enumerator of the responses
-func NewBidiStreamingClientResponseEnumerator[TReq any, TRes any](stream grpc.BidiStreamingClient[TReq, TRes]) Enumerator[*TRes] {
+func NewBidiStreamingClientResponseEnumerator[TReq any, TRes any](stream grpc.BidiStreamingClient[TReq, TRes]) enumerators.Enumerator[*TRes] {
 	return &clientResponseEnumerator[TReq, TRes]{stream: stream}
 }

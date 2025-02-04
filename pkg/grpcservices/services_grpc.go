@@ -1,4 +1,4 @@
-package grpc
+package grpcservices
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/fgrzl/streams/pkg/enumerators"
+	"github.com/fgrzl/enumerators"
 	"github.com/fgrzl/streams/pkg/models"
 	"github.com/fgrzl/streams/pkg/services"
 	"github.com/fgrzl/streams/pkg/util"
@@ -23,12 +23,12 @@ import (
 // StartServer starts the gRPC server.
 func StartServer(ctx context.Context, ready chan struct{}, hosts ...string) {
 	var listeners []net.Listener
-	grpcServer := grpc.NewServer()
+	grpcservices := grpc.NewServer()
 
 	woolfServer := NewWoolfServer(nil)
 	defer woolfServer.Dispose()
 
-	RegisterWoolfServer(grpcServer, woolfServer)
+	RegisterWoolfServer(grpcservices, woolfServer)
 
 	// Create a channel to handle OS signals
 	stop := make(chan os.Signal, 1)
@@ -54,7 +54,7 @@ func StartServer(ctx context.Context, ready chan struct{}, hosts ...string) {
 
 		go func(listener net.Listener, port string) {
 			log.Printf("Server is listening on %s", port)
-			if err := grpcServer.Serve(listener); err != nil {
+			if err := grpcservices.Serve(listener); err != nil {
 				log.Fatalf("Failed to serve on %s: %v", port, err)
 			}
 		}(listener, host)
@@ -71,13 +71,13 @@ func StartServer(ctx context.Context, ready chan struct{}, hosts ...string) {
 	}
 
 	// Gracefully stop the server and close all listeners
-	grpcServer.GracefulStop()
+	grpcservices.GracefulStop()
 	for _, listener := range listeners {
 		listener.Close()
 	}
 }
 
-type WoolfGrpcServer interface {
+type Woolfgrpcservices interface {
 	util.Disposable
 	WoolfServer
 }
@@ -90,7 +90,7 @@ type implementedWolfServer struct {
 }
 
 // NewWoolfServer creates a new WoolfServerImpl instance.
-func NewWoolfServer(options *services.ServiceOptions) WoolfGrpcServer {
+func NewWoolfServer(options *services.ServiceOptions) Woolfgrpcservices {
 	return &implementedWolfServer{service: services.NewService(options)}
 }
 
@@ -135,7 +135,7 @@ func (s *implementedWolfServer) Produce(stream grpc.BidiStreamingServer[models.E
 		return err
 	}
 
-	entries := enumerators.NewBidiStreamingServerEnumerator(stream)
+	entries := NewBidiStreamingServerEnumerator(stream)
 	defer entries.Dispose()
 
 	args := &models.ProduceArgs{

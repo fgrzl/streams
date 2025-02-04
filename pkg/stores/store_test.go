@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/fgrzl/enumerators"
 	"github.com/fgrzl/streams/pkg/config"
-	"github.com/fgrzl/streams/pkg/enumerators"
 	"github.com/fgrzl/streams/pkg/models"
 	"github.com/fgrzl/streams/pkg/stores"
 	"github.com/fgrzl/streams/test"

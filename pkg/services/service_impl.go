@@ -8,8 +8,8 @@ import (
 	"math"
 	"sync"
 
+	"github.com/fgrzl/enumerators"
 	"github.com/fgrzl/streams/pkg/config"
-	"github.com/fgrzl/streams/pkg/enumerators"
 	"github.com/fgrzl/streams/pkg/managers"
 	"github.com/fgrzl/streams/pkg/models"
 	"github.com/fgrzl/streams/pkg/stores"
@@ -234,15 +234,15 @@ func (s *serviceImpl) Produce(ctx context.Context, args *models.ProduceArgs, ent
 	// Process entries and produce responses
 	return enumerators.Map(
 		enumerators.Chunk(
-			enumerators.FilterMap(entries, func(entry *models.Entry) (*models.Entry, error, bool) {
+			enumerators.FilterMap(entries, func(entry *models.Entry) (*models.Entry, bool, error) {
 				// Context cancellation check
 				if ctx.Err() != nil {
-					return entry, ctx.Err(), false
+					return entry, false, ctx.Err()
 				}
 
 				// Validate entry id
 				if entry.EntryId == nil || len(entry.EntryId) != 16 {
-					return entry, errors.New("the entry id is required and must be 16 bytes"), false
+					return entry, false, errors.New("the entry id is required and must be 16 bytes")
 				}
 
 				// validate correlation id
@@ -250,7 +250,7 @@ func (s *serviceImpl) Produce(ctx context.Context, args *models.ProduceArgs, ent
 					correlationId := uuid.New()
 					entry.CorrelationId = correlationId[:]
 				} else if len(entry.CorrelationId) != 16 {
-					return entry, errors.New("the correlation id must be 16 bytes"), false
+					return entry, false, errors.New("the correlation id must be 16 bytes")
 				}
 
 				// validate causation id
@@ -258,36 +258,36 @@ func (s *serviceImpl) Produce(ctx context.Context, args *models.ProduceArgs, ent
 					causationId := uuid.New()
 					entry.CausationId = causationId[:]
 				} else if len(entry.CausationId) != 16 {
-					return entry, errors.New("the causation id must be 16 bytes"), false
+					return entry, false, errors.New("the causation id must be 16 bytes")
 				}
 
 				// Validate and update entry sequence
 				if entry.Sequence == 0 {
-					return entry, errors.New("invalid sequence"), false
+					return entry, false, errors.New("invalid sequence")
 				}
 				if entry.Sequence <= lastSequence {
 					switch args.Strategy {
 					case models.DEFAULT, models.SKIP_ON_DUPLICATE:
-						return nil, nil, false
+						return nil, false, nil
 					case models.ERROR_ON_DUPLICATE, models.ALL_OR_NONE:
-						return nil, errors.New("duplicate sequence"), false
+						return nil, false, errors.New("duplicate sequence")
 					default:
-						return nil, nil, false
+						return nil, false, nil
 					}
 				} else if entry.Sequence > lastSequence+1 {
-					return entry, fmt.Errorf("sequence mismatch: expected %d, got %d", lastSequence+1, entry.Sequence), false
+					return entry, false, fmt.Errorf("sequence mismatch: expected %d, got %d", lastSequence+1, entry.Sequence)
 				}
 
 				// Validate and update timestamp
 				timestamp := util.GetTimestamp()
 				if timestamp < lastTimestamp {
-					return entry, fmt.Errorf("timestamp error: expected >= %d, got %d", lastTimestamp, timestamp), false
+					return entry, false, fmt.Errorf("timestamp error: expected >= %d, got %d", lastTimestamp, timestamp)
 				}
 
 				entry.Timestamp = timestamp
 				lastSequence = entry.Sequence
 				lastTimestamp = timestamp
-				return entry, nil, true
+				return entry, true, nil
 			}),
 			maxPageSize,
 			func(entry *models.Entry) (int64, error) {
@@ -561,7 +561,7 @@ func (s *serviceImpl) Merge(ctx context.Context, args *models.MergeArgs) enumera
 
 	// Map chunked entries to merge responses
 	return enumerators.Cleanup(
-		enumerators.FilterMap(chunkedEntries, func(chunk enumerators.Enumerator[*models.Entry]) (*models.PageDescriptor, error, bool) {
+		enumerators.FilterMap(chunkedEntries, func(chunk enumerators.Enumerator[*models.Entry]) (*models.PageDescriptor, bool, error) {
 			writePageArgs := &models.WritePageArgs{
 				Space:       args.Space,
 				Partition:   args.Partition,
@@ -574,11 +574,11 @@ func (s *serviceImpl) Merge(ctx context.Context, args *models.MergeArgs) enumera
 			// Write page and handle response
 			page, err := targetStore.WritePage(ctx, writePageArgs, chunk)
 			if err != nil {
-				return nil, err, false
+				return nil, false, err
 			}
 
 			if page == nil {
-				return nil, nil, false
+				return nil, false, nil
 			}
 
 			targetRepo.AddPage(page)
@@ -603,7 +603,7 @@ func (s *serviceImpl) Merge(ctx context.Context, args *models.MergeArgs) enumera
 				LastTimestamp:  page.LastTimestamp,
 				Count:          page.Count,
 				Size:           page.Size,
-			}, nil, true
+			}, true, nil
 		}),
 		func() {
 			s.processingLocks.CompareAndDelete(args, mergeID)
@@ -646,10 +646,10 @@ func (s *serviceImpl) Prune(ctx context.Context, args *models.PruneArgs) enumera
 
 	return enumerators.Cleanup(enumerators.FilterMap(
 		enumerators.Slice(currentManifiest.Pages),
-		func(page *models.Page) (*models.PageDescriptor, error, bool) {
+		func(page *models.Page) (*models.PageDescriptor, bool, error) {
 
 			if page.LastSequence >= nextManifest.LastPage.LastSequence {
-				return nil, nil, false
+				return nil, false, nil
 			}
 
 			deletePageArgs := &models.DeletePageArgs{
@@ -660,14 +660,14 @@ func (s *serviceImpl) Prune(ctx context.Context, args *models.PruneArgs) enumera
 			}
 			err := currentStore.DeletePage(ctx, deletePageArgs)
 			if err != nil {
-				return nil, err, false
+				return nil, false, err
 			}
 			return &models.PageDescriptor{
 				Space:     deletePageArgs.Space,
 				Partition: deletePageArgs.Partition,
 				Tier:      deletePageArgs.Tier,
 				Number:    deletePageArgs.Number,
-			}, nil, true
+			}, true, nil
 		}), func() {
 		s.processingLocks.CompareAndDelete(args, pruneID)
 	})

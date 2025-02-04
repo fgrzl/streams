@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"io"
 
-	"github.com/fgrzl/streams/pkg/enumerators"
+	"github.com/fgrzl/enumerators"
 	"github.com/fgrzl/streams/pkg/models"
 
 	"google.golang.org/protobuf/proto"

@@ -1,13 +1,14 @@
-package enumerators
+package grpcservices
 
 import (
 	"io"
 
+	"github.com/fgrzl/enumerators"
 	"google.golang.org/grpc"
 )
 
 type serverEnumerator[TReq any, TRes any] struct {
-	Enumerator[TReq]
+	enumerators.Enumerator[TReq]
 	stream  grpc.BidiStreamingServer[TReq, TRes]
 	current TReq
 	err     error
@@ -41,6 +42,6 @@ func (e *serverEnumerator[TReq, TRes]) Dispose() {
 }
 
 // A new enumerator of the requests
-func NewBidiStreamingServerEnumerator[TReq any, TRes any](stream grpc.BidiStreamingServer[TReq, TRes]) Enumerator[*TReq] {
+func NewBidiStreamingServerEnumerator[TReq any, TRes any](stream grpc.BidiStreamingServer[TReq, TRes]) enumerators.Enumerator[*TReq] {
 	return &serverEnumerator[TReq, TRes]{stream: stream}
 }

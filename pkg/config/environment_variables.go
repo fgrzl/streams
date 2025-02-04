@@ -83,3 +83,85 @@ func GetEnableBackgroundRebuild() bool {
 func SetEnableBackgroundRebuild(enabled bool) {
 	os.Setenv(WOOLF_ENABLE_BACKGROUND_REBUILD, strconv.FormatBool(enabled))
 }
+
+func GetS3Bucket() string {
+	return os.Getenv(WOOLF_S3_BUCKET)
+}
+
+func SetS3Bucket(bucket string) {
+	os.Setenv(WOOLF_S3_BUCKET, bucket)
+}
+
+func GetS3CredentialType() string {
+	return os.Getenv(WOOLF_S3_CREDENTIAL_TYPE)
+}
+func SetS3CredentialType(credentialType string) {
+	os.Setenv(WOOLF_S3_CREDENTIAL_TYPE, credentialType)
+}
+func GetS3ClientID() string {
+	return os.Getenv(WOOLF_S3_CLIENT_ID)
+}
+
+func SetS3ClientID(clientID string) {
+	os.Setenv(WOOLF_S3_CLIENT_ID, clientID)
+}
+func GetS3ClientSecret() string {
+	return os.Getenv(WOOLF_S3_CLIENT_SECRET)
+}
+func SetS3ClientSecret(clientSecret string) {
+	os.Setenv(WOOLF_S3_CLIENT_SECRET, clientSecret)
+}
+func GetAzureEndpoint() string {
+	return os.Getenv(WOOLF_AZURE_ENDPOINT)
+}
+func SetAzureEndpoint(endpoint string) {
+	os.Setenv(WOOLF_AZURE_ENDPOINT, endpoint)
+}
+func GetAzureContainer() string {
+	return os.Getenv(WOOLF_AZURE_CONTAINER)
+}
+func SetAzureContainer(container string) {
+	os.Setenv(WOOLF_AZURE_CONTAINER, container)
+}
+func GetAzureCredentialType() string {
+	return os.Getenv(WOOLF_AZURE_CREDENTIAL_TYPE)
+}
+func SetAzureCredentialType(credentialType string) {
+	os.Setenv(WOOLF_AZURE_CREDENTIAL_TYPE, credentialType)
+}
+func GetAzureAccountName() string {
+	return os.Getenv(WOOLF_AZURE_ACCOUNT_NAME)
+}
+func SetAzureAccountName(accountName string) {
+	os.Setenv(WOOLF_AZURE_ACCOUNT_NAME, accountName)
+}
+func GetAzureAccountKey() string {
+	return os.Getenv(WOOLF_AZURE_ACCOUNT_KEY)
+}
+func SetAzureAccountKey(accountKey string) {
+	os.Setenv(WOOLF_AZURE_ACCOUNT_KEY, accountKey)
+}
+func GetGoogleContainer() string {
+	return os.Getenv(WOOLF_GOOGLE_CONTAINER)
+}
+func SetGoogleContainer(container string) {
+	os.Setenv(WOOLF_GOOGLE_CONTAINER, container)
+}
+func GetGoogleCredentialType() string {
+	return os.Getenv(WOOLF_GOOGLE_CREDENTIAL_TYPE)
+}
+func SetGoogleCredentialType(credentialType string) {
+	os.Setenv(WOOLF_GOOGLE_CREDENTIAL_TYPE, credentialType)
+}
+func GetGoogleClientID() string {
+	return os.Getenv(WOOLF_GOOGLE_CLIENT_ID)
+}
+func SetGoogleClientID(clientID string) {
+	os.Setenv(WOOLF_GOOGLE_CLIENT_ID, clientID)
+}
+func GetGoogleClientSecret() string {
+	return os.Getenv(WOOLF_GOOGLE_CLIENT_SECRET)
+}
+func SetGoogleClientSecret(clientSecret string) {
+	os.Setenv(WOOLF_GOOGLE_CLIENT_SECRET, clientSecret)
+}

@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/fgrzl/streams/pkg/grpc"
+	"github.com/fgrzl/streams/pkg/grpcservices"
 )
 
 func main() {
@@ -31,5 +31,5 @@ func main() {
 	}
 
 	log.Printf("Starting server on ports: %v", ports)
-	grpc.StartServer(context.Background(), make(chan struct{}, 1), ports...)
+	grpcservices.StartServer(context.Background(), make(chan struct{}, 1), ports...)
 }

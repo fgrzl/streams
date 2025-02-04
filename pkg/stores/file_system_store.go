@@ -11,8 +11,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/fgrzl/enumerators"
 	"github.com/fgrzl/streams/pkg/config"
-	"github.com/fgrzl/streams/pkg/enumerators"
 	"github.com/fgrzl/streams/pkg/models"
 	"github.com/fgrzl/streams/pkg/serializers"
 

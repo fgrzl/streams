@@ -4,7 +4,7 @@
 // 	protoc        v5.29.2
 // source: services.proto
 
-package grpc
+package grpcservices
 
 import (
 	models "github.com/fgrzl/streams/pkg/models"

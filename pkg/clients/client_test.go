@@ -8,10 +8,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/fgrzl/enumerators"
 	"github.com/fgrzl/streams/pkg/clients"
 	"github.com/fgrzl/streams/pkg/config"
-	"github.com/fgrzl/streams/pkg/enumerators"
-	"github.com/fgrzl/streams/pkg/grpc"
+	"github.com/fgrzl/streams/pkg/grpcservices"
 	"github.com/fgrzl/streams/pkg/models"
 	"github.com/fgrzl/streams/test"
 	"github.com/google/uuid"
@@ -40,7 +40,7 @@ func setupTestServer(t *testing.T) (context.Context, clients.WoolfClient) {
 
 	host := test.GetAvailablePort()
 	ready := make(chan struct{}, 1)
-	go grpc.StartServer(context.Background(), ready, host)
+	go grpcservices.StartServer(context.Background(), ready, host)
 
 	select {
 	case <-ready:

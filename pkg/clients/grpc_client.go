@@ -8,8 +8,9 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 
-	"github.com/fgrzl/streams/pkg/enumerators"
-	woolfgrpc "github.com/fgrzl/streams/pkg/grpc"
+	"github.com/fgrzl/enumerators"
+
+	"github.com/fgrzl/streams/pkg/grpcservices"
 	"github.com/fgrzl/streams/pkg/models"
 )
 
@@ -18,7 +19,7 @@ func NewGrpcClient(target string) WoolfClient {
 	if err != nil {
 		log.Fatalf("Failed to connect: %v", err)
 	}
-	internalClient := woolfgrpc.NewWoolfClient(cc)
+	internalClient := grpcservices.NewWoolfClient(cc)
 
 	return &grpcClient{
 		cc:       cc,
@@ -28,7 +29,7 @@ func NewGrpcClient(target string) WoolfClient {
 
 type grpcClient struct {
 	cc       *grpc.ClientConn
-	internal woolfgrpc.WoolfClient
+	internal grpcservices.WoolfClient
 }
 
 func (g *grpcClient) CreatePartition(ctx context.Context, args *models.CreatePartitionArgs) (*models.StatusResponse, error) {
@@ -48,7 +49,7 @@ func (g *grpcClient) ConsumeSpace(ctx context.Context, args *models.ConsumeSpace
 	if err != nil {
 		return enumerators.Error[*models.EntryEnvelope](err)
 	}
-	return enumerators.NewServerStreamingClientResponseEnumerator(res)
+	return NewServerStreamingClientResponseEnumerator(res)
 }
 
 func (g *grpcClient) ConsumePartition(ctx context.Context, args *models.ConsumePartitionArgs) enumerators.Enumerator[*models.EntryEnvelope] {
@@ -57,7 +58,7 @@ func (g *grpcClient) ConsumePartition(ctx context.Context, args *models.ConsumeP
 	if err != nil {
 		return enumerators.Error[*models.EntryEnvelope](err)
 	}
-	return enumerators.NewServerStreamingClientResponseEnumerator(res)
+	return NewServerStreamingClientResponseEnumerator(res)
 }
 
 func (g *grpcClient) GetSpaces(ctx context.Context, args *models.GetSpacesArgs) enumerators.Enumerator[*models.SpaceDescriptor] {
@@ -66,7 +67,7 @@ func (g *grpcClient) GetSpaces(ctx context.Context, args *models.GetSpacesArgs) 
 	if err != nil {
 		return enumerators.Error[*models.SpaceDescriptor](err)
 	}
-	return enumerators.NewServerStreamingClientResponseEnumerator(res)
+	return NewServerStreamingClientResponseEnumerator(res)
 }
 
 func (g *grpcClient) GetPartitions(ctx context.Context, args *models.GetPartitionsArgs) enumerators.Enumerator[*models.PartitionDescriptor] {
@@ -75,7 +76,7 @@ func (g *grpcClient) GetPartitions(ctx context.Context, args *models.GetPartitio
 	if err != nil {
 		return enumerators.Error[*models.PartitionDescriptor](err)
 	}
-	return enumerators.NewServerStreamingClientResponseEnumerator(res)
+	return NewServerStreamingClientResponseEnumerator(res)
 }
 
 func (g *grpcClient) Peek(ctx context.Context, args *models.PeekArgs) (*models.EntryEnvelope, error) {
@@ -107,7 +108,7 @@ func (g *grpcClient) Produce(ctx context.Context, args *models.ProduceArgs, entr
 		stream.CloseSend() // Close sending after sending all messages
 	}()
 
-	return enumerators.NewBidiStreamingClientResponseEnumerator(stream)
+	return NewBidiStreamingClientResponseEnumerator(stream)
 }
 
 func (g *grpcClient) Merge(ctx context.Context, args *models.MergeArgs) enumerators.Enumerator[*models.PageDescriptor] {
@@ -116,7 +117,7 @@ func (g *grpcClient) Merge(ctx context.Context, args *models.MergeArgs) enumerat
 	if err != nil {
 		return enumerators.Error[*models.PageDescriptor](err)
 	}
-	return enumerators.NewServerStreamingClientResponseEnumerator(res)
+	return NewServerStreamingClientResponseEnumerator(res)
 }
 
 func (g *grpcClient) Prune(ctx context.Context, args *models.PruneArgs) enumerators.Enumerator[*models.PageDescriptor] {
@@ -125,7 +126,7 @@ func (g *grpcClient) Prune(ctx context.Context, args *models.PruneArgs) enumerat
 	if err != nil {
 		return enumerators.Error[*models.PageDescriptor](err)
 	}
-	return enumerators.NewServerStreamingClientResponseEnumerator(res)
+	return NewServerStreamingClientResponseEnumerator(res)
 }
 
 func (g *grpcClient) Rebuild(ctx context.Context, args *models.RebuildArgs) enumerators.Enumerator[*models.RebuildResponse] {
@@ -134,7 +135,7 @@ func (g *grpcClient) Rebuild(ctx context.Context, args *models.RebuildArgs) enum
 	if err != nil {
 		return enumerators.Error[*models.RebuildResponse](err)
 	}
-	return enumerators.NewServerStreamingClientResponseEnumerator(res)
+	return NewServerStreamingClientResponseEnumerator(res)
 }
 
 func (g *grpcClient) Dispose() {
