@@ -222,8 +222,6 @@ message ProduceArgs {
     string partition = 2;
     // The strategy to use for producing entries (e.g., "append", "upsert")
     string strategy = 3;
-    // The list of entries to produce
-    repeated Entry entries = 4;
 }
 
 message ConsumeSpaceArgs {
