@@ -1,6 +1,9 @@
 package broker
 
+import "github.com/fgrzl/json/polymorphic"
+
 type Routeable interface {
+	polymorphic.Polymorphic
 	GetRoute() string
 }
 

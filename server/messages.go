@@ -10,8 +10,12 @@ import (
 
 type GetStatus struct{}
 
+func (g *GetStatus) GetDiscriminator() string {
+	return fmt.Sprintf("%T", g)
+}
+
 func (g *GetStatus) GetRoute() string {
-	return "get_node_count"
+	return "get_cluster_status"
 }
 
 type ClusterStatus struct {
@@ -23,6 +27,10 @@ type Peek struct {
 	Segment string `json:"segment"`
 }
 
+func (g *Peek) GetDiscriminator() string {
+	return fmt.Sprintf("%T", g)
+}
+
 func (g *Peek) GetRoute() string {
 	return "peek"
 }
@@ -30,6 +38,10 @@ func (g *Peek) GetRoute() string {
 type Produce struct {
 	Space   string `json:"space"`
 	Segment string `json:"segment"`
+}
+
+func (g *Produce) GetDiscriminator() string {
+	return fmt.Sprintf("%T", g)
 }
 
 func (g *Produce) GetRoute() string {
@@ -41,6 +53,10 @@ type ConsumeSpace struct {
 	MinTimestamp int64  `json:"min_timestamp"`
 	MaxTimestamp int64  `json:"max_timestamp"`
 	Offset       []byte `json:"offset"`
+}
+
+func (g *ConsumeSpace) GetDiscriminator() string {
+	return fmt.Sprintf("%T", g)
 }
 
 func (g *ConsumeSpace) GetRoute() string {
@@ -58,6 +74,10 @@ type ConsumeSegment struct {
 	MaxTimestamp int64  `json:"max_timestamp"`
 }
 
+func (g *ConsumeSegment) GetDiscriminator() string {
+	return fmt.Sprintf("%T", g)
+}
+
 func (g *ConsumeSegment) GetRoute() string {
 	return "consume_segment"
 }
@@ -68,12 +88,20 @@ func (g *ConsumeSegment) GetRoute() string {
 
 type GetSpaces struct{}
 
+func (g *GetSpaces) GetDiscriminator() string {
+	return fmt.Sprintf("%T", g)
+}
+
 func (g *GetSpaces) GetRoute() string {
 	return "get_spaces"
 }
 
 type GetSegments struct {
 	Space string `json:"space"`
+}
+
+func (g *GetSegments) GetDiscriminator() string {
+	return fmt.Sprintf("%T", g)
 }
 
 func (g *GetSegments) GetRoute() string {
@@ -85,6 +113,10 @@ type EnumerateSpace struct {
 	MinTimestamp int64  `json:"min_timestamp"`
 	MaxTimestamp int64  `json:"max_timestamp"`
 	Offset       []byte `json:"offset"`
+}
+
+func (g *EnumerateSpace) GetDiscriminator() string {
+	return fmt.Sprintf("%T", g)
 }
 
 func (g *EnumerateSpace) GetRoute() string {
@@ -102,6 +134,10 @@ type EnumerateSegment struct {
 	MaxTimestamp int64  `json:"max_timestamp"`
 }
 
+func (g *EnumerateSegment) GetDiscriminator() string {
+	return fmt.Sprintf("%T", g)
+}
+
 func (g *EnumerateSegment) GetRoute() string {
 	return "enumerate_segment"
 }
@@ -111,6 +147,10 @@ type CheckSpaceOffset struct {
 	Node   uuid.UUID     `json:"node"`
 	Space  string        `json:"space"`
 	Offset lexkey.LexKey `json:"offset"`
+}
+
+func (g *CheckSpaceOffset) GetDiscriminator() string {
+	return fmt.Sprintf("%T", g)
 }
 
 func (c *CheckSpaceOffset) GetRoute() string {
@@ -137,6 +177,10 @@ type CheckSegmentOffset struct {
 	Space   string        `json:"space"`
 	Segment string        `json:"segment"`
 	Offset  lexkey.LexKey `json:"offset"`
+}
+
+func (g *CheckSegmentOffset) GetDiscriminator() string {
+	return fmt.Sprintf("%T", g)
 }
 
 func (c *CheckSegmentOffset) GetRoute() string {
@@ -175,6 +219,10 @@ type Transaction struct {
 	LastSequence  uint64   `json:"last_sequence"`
 	Entries       []*Entry `json:"entries"`
 	Timestamp     int64    `json:"timestamp"`
+}
+
+func (g *Transaction) GetDiscriminator() string {
+	return fmt.Sprintf("%T", g)
 }
 
 func (a *Transaction) GetRoute() string {
@@ -217,6 +265,10 @@ type TRX struct {
 	Number uint64    `json:"number"`
 }
 
+func (g *TRX) GetDiscriminator() string {
+	return fmt.Sprintf("%T", g)
+}
+
 func (a *TRX) GetRoute() string {
 	return fmt.Sprintf("%T.%v", a, a.ID)
 }
@@ -241,6 +293,10 @@ type Commit struct {
 	Segment string `json:"segment"`
 }
 
+func (g *Commit) GetDiscriminator() string {
+	return fmt.Sprintf("%T", g)
+}
+
 func (a *Commit) GetRoute() string {
 	return "trx.commit"
 }
@@ -251,6 +307,10 @@ type Reconcile struct {
 	Segment string `json:"segment"`
 }
 
+func (g *Reconcile) GetDiscriminator() string {
+	return fmt.Sprintf("%T", g)
+}
+
 func (a *Reconcile) GetRoute() string {
 	return "trx.reconcile"
 }
@@ -259,6 +319,10 @@ type Rollback struct {
 	TRX     TRX    `json:"trx"`
 	Space   string `json:"space"`
 	Segment string `json:"segment"`
+}
+
+func (g *Rollback) GetDiscriminator() string {
+	return fmt.Sprintf("%T", g)
 }
 
 func (a *Rollback) GetRoute() string {
@@ -273,17 +337,12 @@ type Synchronize struct {
 	OffsetsBySpace map[string]lexkey.LexKey `json:"offsets_by_space"`
 }
 
+func (g *Synchronize) GetDiscriminator() string {
+	return fmt.Sprintf("%T", g)
+}
+
 func (a *Synchronize) GetRoute() string {
 	return "node.synchronize"
-}
-
-// QuorumChanged represents a quorum update
-type QuorumChanged struct {
-	Node uuid.UUID `json:"node"`
-}
-
-func (q QuorumChanged) GetRoute() string {
-	return "node.quorum_changed"
 }
 
 // NodeHeartbeat represents a node failure event
@@ -291,13 +350,21 @@ type NodeHeartbeat struct {
 	Node uuid.UUID `json:"node"`
 }
 
+func (g *NodeHeartbeat) GetDiscriminator() string {
+	return fmt.Sprintf("%T", g)
+}
+
 func (h *NodeHeartbeat) GetRoute() string {
-	return "node.healthcheck"
+	return "node.heartbeat"
 }
 
 // NodeShutdown notifies that a node has gone down
 type NodeShutdown struct {
 	Node uuid.UUID `json:"node"`
+}
+
+func (g *NodeShutdown) GetDiscriminator() string {
+	return fmt.Sprintf("%T", g)
 }
 
 func (n *NodeShutdown) GetRoute() string {
@@ -313,6 +380,10 @@ type ACK struct {
 	Node uuid.UUID `json:"node"`
 }
 
+func (g *ACK) GetDiscriminator() string {
+	return fmt.Sprintf("%T", g)
+}
+
 func (a *ACK) GetRoute() string {
 	return GetReplyRoute(a.ID)
 }
@@ -320,6 +391,10 @@ func (a *ACK) GetRoute() string {
 type NACK struct {
 	ID   uuid.UUID `json:"id"`
 	Node uuid.UUID `json:"node"`
+}
+
+func (g *NACK) GetDiscriminator() string {
+	return fmt.Sprintf("%T", g)
 }
 
 func (a *NACK) GetRoute() string {
