@@ -66,12 +66,8 @@ func setupConsumerData(t *testing.T, client streams.Client) {
 
 	for i := range 5 {
 		for j := range 5 {
-			records := generateRange(0, 1_000)
-			args := &server.Produce{
-				Space:   fmt.Sprintf("space%d", i),
-				Segment: fmt.Sprintf("segment%d", j),
-			}
-			results := client.Produce(ctx, args, records)
+			space, segment, records := fmt.Sprintf("space%d", i), fmt.Sprintf("segment%d", j), generateRange(0, 1_000)
+			results := client.Produce(ctx, space, segment, records)
 			err := enumerators.Consume(results)
 			require.NoError(t, err)
 		}

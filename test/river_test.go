@@ -17,15 +17,10 @@ func TestProduce(t *testing.T) {
 			// Arrange
 			client := streams.NewClient(bus)
 			ctx := t.Context()
-
-			args := &streams.Produce{
-				Space:   "space0",
-				Segment: "segment0",
-			}
-			records := generateRange(0, 5)
+			space, segment, records := "space0", "segment0", generateRange(0, 5)
 
 			// Act
-			results := client.Produce(ctx, args, records)
+			results := client.Produce(ctx, space, segment, records)
 			statuses, err := enumerators.ToSlice(results)
 
 			// Assert

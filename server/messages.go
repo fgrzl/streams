@@ -49,10 +49,10 @@ func (g *Produce) GetRoute() string {
 }
 
 type ConsumeSpace struct {
-	Space        string `json:"space"`
-	MinTimestamp int64  `json:"min_timestamp"`
-	MaxTimestamp int64  `json:"max_timestamp"`
-	Offset       []byte `json:"offset"`
+	Space        string        `json:"space"`
+	MinTimestamp int64         `json:"min_timestamp"`
+	MaxTimestamp int64         `json:"max_timestamp"`
+	Offset       lexkey.LexKey `json:"offset"`
 }
 
 func (g *ConsumeSpace) GetDiscriminator() string {
@@ -109,10 +109,10 @@ func (g *GetSegments) GetRoute() string {
 }
 
 type EnumerateSpace struct {
-	Space        string `json:"space"`
-	MinTimestamp int64  `json:"min_timestamp"`
-	MaxTimestamp int64  `json:"max_timestamp"`
-	Offset       []byte `json:"offset"`
+	Space        string        `json:"space"`
+	MinTimestamp int64         `json:"min_timestamp"`
+	MaxTimestamp int64         `json:"max_timestamp"`
+	Offset       lexkey.LexKey `json:"offset"`
 }
 
 func (g *EnumerateSpace) GetDiscriminator() string {

@@ -41,7 +41,7 @@ type Client interface {
 	ConsumeSegment(ctx context.Context, args *ConsumeSegment) enumerators.Enumerator[*Entry]
 
 	// Produce stream entries.
-	Produce(ctx context.Context, args *Produce, entries enumerators.Enumerator[*Record]) enumerators.Enumerator[*SegmentStatus]
+	Produce(ctx context.Context, space, segment string, entries enumerators.Enumerator[*Record]) enumerators.Enumerator[*SegmentStatus]
 }
 
 func NewClient(bus broker.Bus) Client {
@@ -110,8 +110,8 @@ func (d *DefaultClient) Peek(ctx context.Context, space string, segment string) 
 	return entry, nil
 }
 
-func (d *DefaultClient) Produce(ctx context.Context, args *Produce, entries enumerators.Enumerator[*Record]) enumerators.Enumerator[*SegmentStatus] {
-	stream, err := d.bus.CallStream(&Produce{Space: args.Space, Segment: args.Segment})
+func (d *DefaultClient) Produce(ctx context.Context, space, segment string, entries enumerators.Enumerator[*Record]) enumerators.Enumerator[*SegmentStatus] {
+	stream, err := d.bus.CallStream(&Produce{Space: space, Segment: segment})
 	if err != nil {
 		return enumerators.Error[*SegmentStatus](err)
 	}
