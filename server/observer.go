@@ -10,6 +10,7 @@ import (
 
 	"github.com/fgrzl/enumerators"
 	"github.com/fgrzl/streams/broker"
+	"github.com/fgrzl/timestamp"
 )
 
 // Observer defines the interface observing events across nodes.
@@ -200,7 +201,15 @@ func (o *DefaultObserver) HandleHeartbeat(args *NodeHeartbeat) {
 		return
 	}
 	slog.Debug("Heartbeat", "node", o.quorum.GetNode(), "from_node", args.Node)
-	if o.quorum.SetOnline(args.Node) {
+
+	var count int
+	args.Nodes[args.Node] = timestamp.GetTimestamp()
+	for node, timestamp := range args.Nodes {
+		if o.quorum.SetOnline(node, timestamp) {
+			count += 1
+		}
+	}
+	if count > 0 {
 		o.heartbeat()
 	}
 }
@@ -464,7 +473,10 @@ func (o *DefaultObserver) HandleGetSegments(args *GetSegments, stream broker.Bid
 }
 
 func (o *DefaultObserver) heartbeat() {
-	o.bus.Notify(&NodeHeartbeat{Node: o.quorum.GetNode()})
+	o.bus.Notify(&NodeHeartbeat{
+		Node:  o.quorum.GetNode(),
+		Nodes: o.quorum.GetNodes(),
+	})
 }
 
 func (o *DefaultObserver) shutdown() {

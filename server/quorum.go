@@ -17,7 +17,7 @@ type Quorum interface {
 	GetNode() uuid.UUID
 	GetNodes() map[uuid.UUID]int64
 	GetTTL() time.Duration
-	SetOnline(node uuid.UUID) bool
+	SetOnline(node uuid.UUID, timestamp int64) bool
 	SetOffline(node uuid.UUID)
 	GetReadCount() int
 	GetWriteCount() int
@@ -58,13 +58,10 @@ func (q *quorumImpl) GetTTL() time.Duration {
 }
 
 // SetOnline marks a node as online by updating its timestamp
-func (q *quorumImpl) SetOnline(node uuid.UUID) bool {
-	ts := timestamp.GetTimestamp()
-
-	// Atomically check and store
-	_, alreadyExisted := q.nodes.LoadOrStore(node, ts)
+func (q *quorumImpl) SetOnline(node uuid.UUID, timestamp int64) bool {
+	_, alreadyExisted := q.nodes.LoadOrStore(node, timestamp)
 	if alreadyExisted {
-		q.nodes.Store(node, ts) // Ensure timestamp is updated
+		q.nodes.Store(node, timestamp)
 	}
 	return !alreadyExisted
 }

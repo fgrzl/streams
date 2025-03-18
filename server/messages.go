@@ -347,7 +347,8 @@ func (a *Synchronize) GetRoute() string {
 
 // NodeHeartbeat represents a node failure event
 type NodeHeartbeat struct {
-	Node uuid.UUID `json:"node"`
+	Node  uuid.UUID           `json:"node"`
+	Nodes map[uuid.UUID]int64 `json:"nodes"`
 }
 
 func (g *NodeHeartbeat) GetDiscriminator() string {
