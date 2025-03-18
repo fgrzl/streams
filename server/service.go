@@ -114,6 +114,14 @@ type SegmentStatus struct {
 	LastTimestamp  int64  `json:"last_timestamp"`
 }
 
+func (s *SegmentStatus) GetDiscriminator() string {
+	return fmt.Sprintf("%T", s)
+}
+
+func (s *SegmentStatus) GetRoute() string {
+	return s.Space + "." + s.Segment
+}
+
 type Record struct {
 	Sequence uint64            `json:"sequence"`
 	Payload  []byte            `json:"payload"`
@@ -405,14 +413,18 @@ func (s *DefaultService) Produce(ctx context.Context, args *Produce, entries enu
 
 			lastTransactionNumber += 1
 
-			return &SegmentStatus{
+			status := &SegmentStatus{
 				Space:          space,
 				Segment:        segment,
 				FirstSequence:  entries[0].Sequence,
 				FirstTimestamp: entries[0].Timestamp,
 				LastSequence:   entries[len(entries)-1].Sequence,
 				LastTimestamp:  entries[len(entries)-1].Timestamp,
-			}, nil
+			}
+
+			// todo publish notification
+
+			return status, nil
 		})
 }
 

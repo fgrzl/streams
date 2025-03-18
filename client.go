@@ -42,6 +42,12 @@ type Client interface {
 
 	// Produce stream entries.
 	Produce(ctx context.Context, space, segment string, entries enumerators.Enumerator[*Record]) enumerators.Enumerator[*SegmentStatus]
+
+	// Subscribe to a space.
+	SubcribeToSpace(space string, handler func(*SegmentStatus)) (broker.Subscription, error)
+
+	// Subscribe to a segment.
+	SubcribeToSegment(space, segment string, handler func(*SegmentStatus)) (broker.Subscription, error)
 }
 
 func NewClient(bus broker.Bus) Client {
@@ -131,4 +137,20 @@ func (d *DefaultClient) Produce(ctx context.Context, space, segment string, entr
 	}(stream, entries)
 
 	return broker.NewStreamEnumerator[*SegmentStatus](stream)
+}
+
+func (d *DefaultClient) SubcribeToSpace(space string, handler func(*SegmentStatus)) (broker.Subscription, error) {
+	return d.bus.Subscribe(space, func(r broker.Routeable) {
+		if status, ok := r.(*SegmentStatus); ok {
+			handler(status)
+		}
+	})
+}
+
+func (d *DefaultClient) SubcribeToSegment(space, segment string, handler func(*SegmentStatus)) (broker.Subscription, error) {
+	return d.bus.Subscribe(space+"."+segment, func(r broker.Routeable) {
+		if status, ok := r.(*SegmentStatus); ok {
+			handler(status)
+		}
+	})
 }
