@@ -1,6 +1,8 @@
 package broker
 
-import "github.com/fgrzl/json/polymorphic"
+import (
+	"github.com/fgrzl/json/polymorphic"
+)
 
 type Routeable interface {
 	polymorphic.Polymorphic
