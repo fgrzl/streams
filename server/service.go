@@ -130,6 +130,14 @@ type Entry struct {
 	Segment   string            `json:"segment"`
 }
 
+func (e *Entry) GetSpaceOffset() lexkey.LexKey {
+	return lexkey.Encode(DATA, SPACES, e.Space, e.Timestamp, e.Segment, e.Sequence)
+}
+
+func (e *Entry) GetSegmentOffset() lexkey.LexKey {
+	return lexkey.Encode(DATA, SEGMENTS, e.Space, e.Segment, e.Sequence)
+}
+
 var (
 	_ Service = (*DefaultService)(nil)
 )
@@ -890,8 +898,8 @@ func (s *DefaultService) updateInventory(space, segment string) error {
 }
 
 func setEntry(batch *pebble.Batch, entry *Entry) error {
-	dataSpaceKey := lexkey.Encode(DATA, SPACES, entry.Space, entry.Timestamp, entry.Segment, entry.Sequence)
-	dataSegmentKey := lexkey.Encode(DATA, SEGMENTS, entry.Space, entry.Segment, entry.Sequence)
+	dataSpaceKey := entry.GetSpaceOffset()
+	dataSegmentKey := entry.GetSegmentOffset()
 	data, err := EncodeEntrySnappy(entry)
 	if err != nil {
 		slog.Error("Error marshalling entry", "error", err)
