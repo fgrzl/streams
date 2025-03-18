@@ -20,7 +20,7 @@ import (
 func configurations(t *testing.T) map[string]broker.Bus {
 	logging.ConfigureLogging()
 	return map[string]broker.Bus{
-		//"single": singleInstance(t),
+		"single":    singleInstance(t),
 		"clustered": clusteredInstance(t),
 	}
 }

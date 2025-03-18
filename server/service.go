@@ -871,30 +871,6 @@ func (s *DefaultService) getInventory(ctx context.Context, lower, upper lexkey.L
 }
 
 func (s *DefaultService) updateInventory(space, segment string) error {
-
-	createIfNotExists := func(db *pebble.DB, cache *ExpiringCache, key lexkey.LexKey, value string) (bool, error) {
-
-		if _, ok := cache.Get(key.ToHexString()); ok {
-			return false, nil
-		}
-		_, closer, err := db.Get(key)
-		if closer != nil {
-			defer closer.Close()
-		}
-		if err != nil {
-			if errors.Is(err, pebble.ErrNotFound) {
-				if err := db.Set(key, []byte(value), pebble.NoSync); err != nil {
-					return false, err
-				}
-				cache.Set(key.ToHexString(), struct{}{})
-				return true, nil
-			} else {
-				return false, err
-			}
-		}
-		return false, nil
-	}
-
 	created, err := createIfNotExists(s.db, s.cache, lexkey.Encode(INVENTORY, SEGMENTS, space, segment), segment)
 	if err != nil {
 		return fmt.Errorf("failed to update segment inventory: %w", err)
@@ -907,6 +883,30 @@ func (s *DefaultService) updateInventory(space, segment string) error {
 		return nil
 	}
 	return nil
+}
+
+func createIfNotExists(db *pebble.DB, cache *ExpiringCache, key lexkey.LexKey, value string) (bool, error) {
+	keyHex := key.ToHexString()
+
+	if _, ok := cache.Get(keyHex); ok {
+		return false, nil
+	}
+	_, closer, err := db.Get(key)
+	if closer != nil {
+		defer closer.Close()
+	}
+	if err != nil {
+		if errors.Is(err, pebble.ErrNotFound) {
+			if err := db.Set(key, []byte(value), pebble.NoSync); err != nil {
+				return false, err
+			}
+			cache.Set(keyHex, struct{}{})
+			return true, nil
+		} else {
+			return false, err
+		}
+	}
+	return false, nil
 }
 
 func setEntry(batch *pebble.Batch, entry *Entry) error {

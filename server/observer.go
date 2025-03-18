@@ -115,82 +115,44 @@ type DefaultObserver struct {
 	disposed sync.Once
 }
 
-// registerHandlers subscribes to transaction lifecycle events
 func (o *DefaultObserver) registerHandlers() error {
-
-	//
-	// Quorum management
-	//
-
-	if err := RegisterHandler(o, &NodeHeartbeat{}, o.HandleHeartbeat); err != nil {
-		return err
-	}
-	if err := RegisterHandler(o, &NodeShutdown{}, o.HandleNodeShutdown); err != nil {
-		return err
-	}
-	if err := RegisterHandler(o, &CheckSpaceOffset{}, o.HandleCheckSpaceOffset); err != nil {
-		return err
-	}
-	if err := RegisterHandler(o, &CheckSegmentOffset{}, o.HandleCheckSegmentOffset); err != nil {
-		return err
+	// Register standard handlers
+	standardHandlers := []func() error{
+		func() error { return RegisterHandler(o, &NodeHeartbeat{}, o.HandleHeartbeat) },
+		func() error { return RegisterHandler(o, &NodeShutdown{}, o.HandleNodeShutdown) },
+		func() error { return RegisterHandler(o, &CheckSpaceOffset{}, o.HandleCheckSpaceOffset) },
+		func() error { return RegisterHandler(o, &CheckSegmentOffset{}, o.HandleCheckSegmentOffset) },
+		func() error { return RegisterHandler(o, &Transaction{}, o.HandleWrite) },
+		func() error { return RegisterHandler(o, &Commit{}, o.HandleCommit) },
+		func() error { return RegisterHandler(o, &Rollback{}, o.HandleRollback) },
 	}
 
-	//
-	// Transaction lifecycle
-	//
-
-	if err := RegisterHandler(o, &Transaction{}, o.HandleWrite); err != nil {
-		return err
-	}
-	if err := RegisterHandler(o, &Commit{}, o.HandleCommit); err != nil {
-		return err
-	}
-	if err := RegisterHandler(o, &Rollback{}, o.HandleRollback); err != nil {
-		return err
-	}
-
-	//
-	// Streaming
-	//
-
-	if err := RegisterStreamHandler(o, &GetStatus{}, o.HandleGetClusterStatus); err != nil {
-		return err
+	// Register stream handlers
+	streamHandlers := []func() error{
+		func() error { return RegisterStreamHandler(o, &GetStatus{}, o.HandleGetClusterStatus) },
+		func() error { return RegisterStreamHandler(o, &Synchronize{}, o.HandleSyncrhronize) },
+		func() error { return RegisterStreamHandler(o, &Peek{}, o.HandlePeek) },
+		func() error { return RegisterStreamHandler(o, &GetSpaces{}, o.HandleGetSpaces) },
+		func() error { return RegisterStreamHandler(o, &ConsumeSpace{}, o.HandleConsumeSpace) },
+		func() error { return RegisterStreamHandler(o, &EnumerateSpace{}, o.HandleEnumerateSpace) },
+		func() error { return RegisterStreamHandler(o, &GetSegments{}, o.HandleGetSegments) },
+		func() error { return RegisterStreamHandler(o, &ConsumeSegment{}, o.HandleConsumeSegment) },
+		func() error { return RegisterStreamHandler(o, &EnumerateSegment{}, o.HandleEnumerateSegment) },
+		func() error { return RegisterStreamHandler(o, &Produce{}, o.HandleProduce) },
 	}
 
-	if err := RegisterStreamHandler(o, &Synchronize{}, o.HandleSyncrhronize); err != nil {
-		return err
+	// Execute all standard handlers
+	for _, register := range standardHandlers {
+		if err := register(); err != nil {
+			return err
+		}
 	}
 
-	if err := RegisterStreamHandler(o, &Peek{}, o.HandlePeek); err != nil {
-		return err
-	}
-
-	if err := RegisterStreamHandler(o, &GetSpaces{}, o.HandleGetSpaces); err != nil {
-		return err
-	}
-
-	if err := RegisterStreamHandler(o, &ConsumeSpace{}, o.HandleConsumeSpace); err != nil {
-		return err
-	}
-
-	if err := RegisterStreamHandler(o, &EnumerateSpace{}, o.HandleEnumerateSpace); err != nil {
-		return err
-	}
-
-	if err := RegisterStreamHandler(o, &GetSegments{}, o.HandleGetSegments); err != nil {
-		return err
-	}
-
-	if err := RegisterStreamHandler(o, &ConsumeSegment{}, o.HandleConsumeSegment); err != nil {
-		return err
-	}
-
-	if err := RegisterStreamHandler(o, &EnumerateSegment{}, o.HandleEnumerateSegment); err != nil {
-		return err
-	}
-
-	if err := RegisterStreamHandler(o, &Produce{}, o.HandleProduce); err != nil {
-		return err
+	// Execute all stream handlers
+	for _, register := range streamHandlers {
+		if err := register(); err != nil {
+			return err
+		}
 	}
 
 	return nil
