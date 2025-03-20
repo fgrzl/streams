@@ -1,6 +1,7 @@
 package server
 
 import (
+	"runtime"
 	"sync"
 	"time"
 
@@ -65,6 +66,9 @@ func (c *ExpiringCache) Delete(key uuid.UUID) {
 
 // cleanupExpiredEntries runs periodically to remove expired items
 func (c *ExpiringCache) cleanupExpiredEntries() {
+
+	runtime.Gosched()
+
 	ticker := time.NewTicker(c.interval)
 	defer ticker.Stop()
 
@@ -72,7 +76,7 @@ func (c *ExpiringCache) cleanupExpiredEntries() {
 		select {
 		case <-ticker.C:
 			now := time.Now().UnixNano()
-			c.store.Range(func(key, value interface{}) bool {
+			c.store.Range(func(key, value any) bool {
 				if value.(CacheItem).Expiration < now {
 					c.store.Delete(key)
 				}

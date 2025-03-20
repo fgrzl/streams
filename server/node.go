@@ -14,7 +14,7 @@ type Node struct {
 	Service    Service
 	Supervisor Supervisor
 	Observer   Observer
-	state      Quorum
+	quorum     Quorum
 	disposed   sync.Once
 }
 
@@ -29,11 +29,13 @@ func NewNode(bus broker.Bus, path string) (*Node, error) {
 	}
 
 	if err := service.Synchronize(ctx); err != nil {
+		service.Close()
 		return nil, err
 	}
 
 	observer, err := NewDefaultObserver(bus, service, quorum)
 	if err != nil {
+		service.Close()
 		return nil, err
 	}
 	return &Node{
@@ -42,7 +44,7 @@ func NewNode(bus broker.Bus, path string) (*Node, error) {
 		Service:    service,
 		Supervisor: supervisor,
 		Observer:   observer,
-		state:      quorum,
+		quorum:     quorum,
 	}, nil
 }
 
@@ -59,7 +61,7 @@ func (n *Node) Close() error {
 		}
 		n.Bus = nil
 		n.Supervisor = nil
-		n.state = nil
+		n.quorum = nil
 	})
 	return err
 }

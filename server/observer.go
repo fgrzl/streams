@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"runtime"
 	"sync"
 	"time"
 
@@ -493,6 +494,9 @@ func (o *DefaultObserver) Close() {
 }
 
 func (o *DefaultObserver) monitor() {
+	runtime.Gosched()
+
+	// Send initial heartbeat
 	o.heartbeat()
 	interval := o.quorum.GetTTL() / 3
 	ticker := time.NewTicker(interval)
