@@ -44,10 +44,10 @@ type Supervisor interface {
 	Rollback(context.Context, *Rollback) error
 
 	// Check read quorum.
-	CheckSpaceOffset(context.Context, *CheckSpaceOffset) error
+	ConfirmSpaceOffset(context.Context, *ConfirmSpaceOffset) error
 
 	// Check read quorum.
-	CheckSegmentOffset(context.Context, *CheckSegmentOffset) error
+	ConfirmSegmentOffset(context.Context, *ConfirmSegmentOffset) error
 
 	// Syncronize
 	Synchronize(context.Context, *Synchronize) enumerators.Enumerator[*Entry]
@@ -81,11 +81,11 @@ func (d *DefualtSupervisor) GetActiveNodeCount() int {
 // Read Quorum
 //
 
-func (d *DefualtSupervisor) CheckSpaceOffset(ctx context.Context, args *CheckSpaceOffset) error {
+func (d *DefualtSupervisor) ConfirmSpaceOffset(ctx context.Context, args *ConfirmSpaceOffset) error {
 	return d.waitForQuorum(ctx, args.ID, args)
 }
 
-func (d *DefualtSupervisor) CheckSegmentOffset(ctx context.Context, args *CheckSegmentOffset) error {
+func (d *DefualtSupervisor) ConfirmSegmentOffset(ctx context.Context, args *ConfirmSegmentOffset) error {
 	return d.waitForQuorum(ctx, args.ID, args)
 }
 

@@ -23,8 +23,8 @@ type Observer interface {
 	HandleNodeShutdown(*NodeShutdown)
 
 	// Read lifecycle
-	HandleCheckSpaceOffset(*CheckSpaceOffset)
-	HandleCheckSegmentOffset(*CheckSegmentOffset)
+	HandleConfirmSpaceOffset(*ConfirmSpaceOffset)
+	HandleConfirmSegmentOffset(*ConfirmSegmentOffset)
 
 	// Transaction lifecycle
 	HandleWrite(*Transaction)
@@ -122,8 +122,8 @@ func (o *DefaultObserver) registerHandlers() error {
 	standardHandlers := []func() error{
 		func() error { return RegisterHandler(o, &NodeHeartbeat{}, o.HandleHeartbeat) },
 		func() error { return RegisterHandler(o, &NodeShutdown{}, o.HandleNodeShutdown) },
-		func() error { return RegisterHandler(o, &CheckSpaceOffset{}, o.HandleCheckSpaceOffset) },
-		func() error { return RegisterHandler(o, &CheckSegmentOffset{}, o.HandleCheckSegmentOffset) },
+		func() error { return RegisterHandler(o, &ConfirmSpaceOffset{}, o.HandleConfirmSpaceOffset) },
+		func() error { return RegisterHandler(o, &ConfirmSegmentOffset{}, o.HandleConfirmSegmentOffset) },
 		func() error { return RegisterHandler(o, &Transaction{}, o.HandleWrite) },
 		func() error { return RegisterHandler(o, &Commit{}, o.HandleCommit) },
 		func() error { return RegisterHandler(o, &Rollback{}, o.HandleRollback) },
@@ -195,7 +195,7 @@ func (o *DefaultObserver) HandleNodeShutdown(args *NodeShutdown) {
 // Read Handlers
 //
 
-func (o *DefaultObserver) HandleCheckSpaceOffset(args *CheckSpaceOffset) {
+func (o *DefaultObserver) HandleConfirmSpaceOffset(args *ConfirmSpaceOffset) {
 
 	if args.Node == o.quorum.GetNode() {
 		return
@@ -203,7 +203,7 @@ func (o *DefaultObserver) HandleCheckSpaceOffset(args *CheckSpaceOffset) {
 
 	offset, err := o.service.GetSpaceOffset(o.ctx, args.Space)
 	if err != nil {
-		slog.Warn("CheckSpaceOffset could not confirm offset retrieval", "error", err)
+		slog.Warn("ConfirmSpaceOffset could not confirm offset retrieval", "error", err)
 		return
 	}
 
@@ -217,7 +217,7 @@ func (o *DefaultObserver) HandleCheckSpaceOffset(args *CheckSpaceOffset) {
 
 	if result < 0 {
 		// Node is behind, it cannot confirm, so just log and return
-		slog.Warn("CheckSpaceOffset: local offset is behind, cannot confirm", "local_offset", offset, "received_offset", args.Offset)
+		slog.Warn("ConfirmSpaceOffset: local offset is behind, cannot confirm", "local_offset", offset, "received_offset", args.Offset)
 		o.service.SynchronizeSpace(o.ctx, args.Space)
 		return
 	}
@@ -225,7 +225,7 @@ func (o *DefaultObserver) HandleCheckSpaceOffset(args *CheckSpaceOffset) {
 	o.bus.Notify(args.ToNACK(o.quorum.GetNode()))
 }
 
-func (o *DefaultObserver) HandleCheckSegmentOffset(args *CheckSegmentOffset) {
+func (o *DefaultObserver) HandleConfirmSegmentOffset(args *ConfirmSegmentOffset) {
 	if args.Node == o.quorum.GetNode() {
 		return
 	}
@@ -234,7 +234,7 @@ func (o *DefaultObserver) HandleCheckSegmentOffset(args *CheckSegmentOffset) {
 
 		offset, err := o.service.GetSegmentOffset(o.ctx, space, segment)
 		if err != nil {
-			slog.Warn("CheckSegmentOffset could not confirm offset retrieval", "error", err)
+			slog.Warn("ConfirmSegmentOffset could not confirm offset retrieval", "error", err)
 			return
 		}
 
@@ -248,7 +248,7 @@ func (o *DefaultObserver) HandleCheckSegmentOffset(args *CheckSegmentOffset) {
 
 		if result < 0 {
 			// Node is behind, it cannot confirm, so just log and return
-			slog.Warn("CheckSegmentOffset: local offset is behind, cannot confirm", "local_offset", offset, "received_offset", args.Offset)
+			slog.Warn("ConfirmSegmentOffset: local offset is behind, cannot confirm", "local_offset", offset, "received_offset", args.Offset)
 			o.service.SynchronizeSegment(o.ctx, space, segment)
 			break
 		}

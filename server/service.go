@@ -35,6 +35,8 @@ var (
 		&Commit{},
 		&Rollback{},
 		&Reconcile{},
+		&ConfirmSpaceOffset{},
+		&ConfirmSegmentOffset{},
 		&ACK{},
 		&NACK{},
 		&NodeHeartbeat{},
@@ -691,13 +693,13 @@ func (s *DefaultService) coordinatedReadSpace(ctx context.Context, space string)
 		return err
 	}
 
-	args := &CheckSpaceOffset{
+	args := &ConfirmSpaceOffset{
 		ID:     uuid.New(),
 		Node:   s.supervisor.GetNode(),
 		Space:  space,
 		Offset: currentOffset,
 	}
-	if err := s.supervisor.CheckSpaceOffset(ctx, args); err != nil {
+	if err := s.supervisor.ConfirmSpaceOffset(ctx, args); err != nil {
 		slog.Error("Error checking space offset", "error", err)
 		return err
 	}
@@ -717,14 +719,14 @@ func (s *DefaultService) coordinatedReadSegment(ctx context.Context, space, segm
 		return err
 	}
 
-	args := &CheckSegmentOffset{
+	args := &ConfirmSegmentOffset{
 		ID:      uuid.New(),
 		Node:    s.supervisor.GetNode(),
 		Space:   space,
 		Segment: segment,
 		Offset:  currentOffset,
 	}
-	if err := s.supervisor.CheckSegmentOffset(ctx, args); err != nil {
+	if err := s.supervisor.ConfirmSegmentOffset(ctx, args); err != nil {
 		slog.Error("Error checking segment offset", "error", err)
 		return err
 	}

@@ -142,36 +142,36 @@ func (g *EnumerateSegment) GetRoute() string {
 	return "enumerate_segment"
 }
 
-type CheckSpaceOffset struct {
+type ConfirmSpaceOffset struct {
 	ID     uuid.UUID     `json:"id"`
 	Node   uuid.UUID     `json:"node"`
 	Space  string        `json:"space"`
 	Offset lexkey.LexKey `json:"offset"`
 }
 
-func (g *CheckSpaceOffset) GetDiscriminator() string {
+func (g *ConfirmSpaceOffset) GetDiscriminator() string {
 	return fmt.Sprintf("%T", g)
 }
 
-func (c *CheckSpaceOffset) GetRoute() string {
+func (c *ConfirmSpaceOffset) GetRoute() string {
 	return "check_space_offset"
 }
 
-func (c *CheckSpaceOffset) ToACK(node uuid.UUID) *ACK {
+func (c *ConfirmSpaceOffset) ToACK(node uuid.UUID) *ACK {
 	return &ACK{
 		ID:   c.ID,
 		Node: node,
 	}
 }
 
-func (c *CheckSpaceOffset) ToNACK(node uuid.UUID) *NACK {
+func (c *ConfirmSpaceOffset) ToNACK(node uuid.UUID) *NACK {
 	return &NACK{
 		ID:   c.ID,
 		Node: node,
 	}
 }
 
-type CheckSegmentOffset struct {
+type ConfirmSegmentOffset struct {
 	ID      uuid.UUID     `json:"id"`
 	Node    uuid.UUID     `json:"node"`
 	Space   string        `json:"space"`
@@ -179,22 +179,22 @@ type CheckSegmentOffset struct {
 	Offset  lexkey.LexKey `json:"offset"`
 }
 
-func (g *CheckSegmentOffset) GetDiscriminator() string {
+func (g *ConfirmSegmentOffset) GetDiscriminator() string {
 	return fmt.Sprintf("%T", g)
 }
 
-func (c *CheckSegmentOffset) GetRoute() string {
+func (c *ConfirmSegmentOffset) GetRoute() string {
 	return "check_segment_offset"
 }
 
-func (c *CheckSegmentOffset) ToACK(node uuid.UUID) *ACK {
+func (c *ConfirmSegmentOffset) ToACK(node uuid.UUID) *ACK {
 	return &ACK{
 		ID:   c.ID,
 		Node: node,
 	}
 }
 
-func (c *CheckSegmentOffset) ToNACK(node uuid.UUID) *NACK {
+func (c *ConfirmSegmentOffset) ToNACK(node uuid.UUID) *NACK {
 	return &NACK{
 		ID:   c.ID,
 		Node: node,
