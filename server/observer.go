@@ -12,6 +12,7 @@ import (
 	"github.com/fgrzl/enumerators"
 	"github.com/fgrzl/streams/broker"
 	"github.com/fgrzl/timestamp"
+	"github.com/google/uuid"
 )
 
 // Observer defines the interface observing events across nodes.
@@ -165,10 +166,16 @@ func (o *DefaultObserver) HandleHeartbeat(args *NodeHeartbeat) {
 	}
 	slog.Debug("Heartbeat", "node", o.quorum.GetNode(), "from_node", args.Node)
 
+	// Make a defensive copy of the Nodes map
+	nodes := make(map[uuid.UUID]int64)
+	for k, v := range args.Nodes {
+		nodes[k] = v
+	}
+	nodes[args.Node] = timestamp.GetTimestamp()
+
 	var count int
-	args.Nodes[args.Node] = timestamp.GetTimestamp()
-	for node, timestamp := range args.Nodes {
-		if o.quorum.SetOnline(node, timestamp) {
+	for node, ts := range nodes {
+		if o.quorum.SetOnline(node, ts) {
 			count += 1
 		}
 	}

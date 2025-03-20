@@ -10,7 +10,7 @@ import (
 var _ broker.Bus = &mockBus{}
 
 type mockBus struct {
-	mu             sync.Mutex
+	mu             sync.RWMutex
 	handlers       map[string]map[*TestSubscription]broker.SubscriptionHandler
 	streamHandlers map[string]map[*TestSubscription]broker.StreamSubscriptionHandler
 }
@@ -25,16 +25,27 @@ func NewMockBus() broker.Bus {
 
 // Notify finds all the handlers for the type of args and calls them.
 func (t *mockBus) Notify(args broker.Routeable) error {
-	t.mu.Lock()
-	defer t.mu.Unlock()
-
+	// Get handlers safely under read lock
+	t.mu.RLock()
 	route := args.GetRoute()
-	if subs, exists := t.handlers[route]; exists {
+	subs, exists := t.handlers[route]
+
+	// Create a slice of handlers to execute outside the lock
+	var handlersToExecute []broker.SubscriptionHandler
+	if exists {
+		handlersToExecute = make([]broker.SubscriptionHandler, 0, len(subs))
 		for _, handler := range subs {
-			go func(h broker.SubscriptionHandler) {
-				h(args)
-			}(handler)
+			handlersToExecute = append(handlersToExecute, handler)
 		}
+	}
+	t.mu.RUnlock()
+
+	// Execute handlers outside of any lock
+	for _, handler := range handlersToExecute {
+		go func(h broker.SubscriptionHandler) {
+			// Execute in goroutine with a local copy of the handler
+			h(args)
+		}(handler)
 	}
 
 	return nil
@@ -45,7 +56,6 @@ func (t *mockBus) Subscribe(route string, handler broker.SubscriptionHandler) (b
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
-	// Ensure the key exists in handlers map
 	if _, exists := t.handlers[route]; !exists {
 		t.handlers[route] = make(map[*TestSubscription]broker.SubscriptionHandler)
 	}
@@ -56,27 +66,28 @@ func (t *mockBus) Subscribe(route string, handler broker.SubscriptionHandler) (b
 }
 
 func (t *mockBus) CallStream(args broker.Routeable) (broker.BidiStream, error) {
-	t.mu.Lock()
-	defer t.mu.Unlock()
-
+	// Get handlers safely under read lock
+	t.mu.RLock()
 	route := args.GetRoute()
-	var handlers []broker.StreamSubscriptionHandler
-	if subs, exists := t.streamHandlers[route]; exists {
+	subs, exists := t.streamHandlers[route]
+
+	var handlersToExecute []broker.StreamSubscriptionHandler
+	if exists {
+		handlersToExecute = make([]broker.StreamSubscriptionHandler, 0, len(subs))
 		for _, handler := range subs {
-			handlers = append(handlers, handler)
+			handlersToExecute = append(handlersToExecute, handler)
 		}
 	}
+	t.mu.RUnlock()
 
 	client := NewMockBidiStream()
 
-	if len(handlers) > 0 {
+	if len(handlersToExecute) > 0 {
 		server := NewMockBidiStream()
 		LinkStreams(client, server)
-		randomHandler := handlers[rand.Intn(len(handlers))]
+		randomHandler := handlersToExecute[rand.Intn(len(handlersToExecute))]
 		go randomHandler(args, server)
-
 	} else {
-		// If no handlers, just close the stream immediately
 		client.Close(nil)
 	}
 
@@ -88,7 +99,6 @@ func (t *mockBus) SubscribeToStream(route string, handler broker.StreamSubscript
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
-	// Ensure the key exists in handlers map
 	if _, exists := t.streamHandlers[route]; !exists {
 		t.streamHandlers[route] = make(map[*TestSubscription]broker.StreamSubscriptionHandler)
 	}
@@ -96,7 +106,6 @@ func (t *mockBus) SubscribeToStream(route string, handler broker.StreamSubscript
 	subscription := &TestSubscription{bus: t, key: route}
 	t.streamHandlers[route][subscription] = handler
 	return subscription, nil
-
 }
 
 var _ broker.Subscription = &TestSubscription{}
@@ -107,14 +116,21 @@ type TestSubscription struct {
 }
 
 // Unsubscribe removes the handler from mockBus.
-func (s *TestSubscription) Unsubscribe() {
-	s.bus.mu.Lock()
-	defer s.bus.mu.Unlock()
+func (t *TestSubscription) Unsubscribe() {
+	t.bus.mu.Lock()
+	defer t.bus.mu.Unlock()
 
-	if subs, exists := s.bus.handlers[s.key]; exists {
-		delete(subs, s)
+	if subs, exists := t.bus.handlers[t.key]; exists {
+		delete(subs, t)
 		if len(subs) == 0 {
-			delete(s.bus.handlers, s.key) // Clean up if no more subscriptions
+			delete(t.bus.handlers, t.key)
+		}
+	}
+
+	if subs, exists := t.bus.streamHandlers[t.key]; exists {
+		delete(subs, t)
+		if len(subs) == 0 {
+			delete(t.bus.streamHandlers, t.key)
 		}
 	}
 }
