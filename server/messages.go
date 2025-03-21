@@ -48,11 +48,25 @@ func (g *Produce) GetRoute() string {
 	return "produce"
 }
 
+type Consume struct {
+	MinTimestamp int64                    `json:"min_timestamp,omitempty"`
+	MaxTimestamp int64                    `json:"max_timestamp,omitempty"`
+	Offsets      map[string]lexkey.LexKey `json:"offsets,omitempty"`
+}
+
+func (g *Consume) GetDiscriminator() string {
+	return fmt.Sprintf("%T", g)
+}
+
+func (g *Consume) GetRoute() string {
+	return "consume"
+}
+
 type ConsumeSpace struct {
 	Space        string        `json:"space"`
-	MinTimestamp int64         `json:"min_timestamp"`
-	MaxTimestamp int64         `json:"max_timestamp"`
-	Offset       lexkey.LexKey `json:"offset"`
+	MinTimestamp int64         `json:"min_timestamp,omitempty"`
+	MaxTimestamp int64         `json:"max_timestamp,omitempty"`
+	Offset       lexkey.LexKey `json:"offset,omitempty"`
 }
 
 func (g *ConsumeSpace) GetDiscriminator() string {
@@ -68,10 +82,10 @@ type ConsumeSegment struct {
 	Segment string `json:"segment"`
 
 	// The minimum sequence number to consume.
-	MinSequence  uint64 `json:"min_sequence"`
-	MinTimestamp int64  `json:"min_timestamp"`
-	MaxSequence  uint64 `json:"max_sequence"`
-	MaxTimestamp int64  `json:"max_timestamp"`
+	MinSequence  uint64 `json:"min_sequence,omitempty"`
+	MinTimestamp int64  `json:"min_timestamp,omitempty"`
+	MaxSequence  uint64 `json:"max_sequence,omitempty"`
+	MaxTimestamp int64  `json:"max_timestamp,omitempty"`
 }
 
 func (g *ConsumeSegment) GetDiscriminator() string {
@@ -110,9 +124,9 @@ func (g *GetSegments) GetRoute() string {
 
 type EnumerateSpace struct {
 	Space        string        `json:"space"`
-	MinTimestamp int64         `json:"min_timestamp"`
-	MaxTimestamp int64         `json:"max_timestamp"`
-	Offset       lexkey.LexKey `json:"offset"`
+	MinTimestamp int64         `json:"min_timestamp,omitempty"`
+	MaxTimestamp int64         `json:"max_timestamp,omitempty"`
+	Offset       lexkey.LexKey `json:"offset,omitempty"`
 }
 
 func (g *EnumerateSpace) GetDiscriminator() string {
@@ -128,10 +142,10 @@ type EnumerateSegment struct {
 	Segment string `json:"segment"`
 
 	// The minimum sequence number to consume.
-	MinSequence  uint64 `json:"min_sequence"`
-	MinTimestamp int64  `json:"min_timestamp"`
-	MaxSequence  uint64 `json:"max_sequence"`
-	MaxTimestamp int64  `json:"max_timestamp"`
+	MinSequence  uint64 `json:"min_sequence,omitempty"`
+	MinTimestamp int64  `json:"min_timestamp,omitempty"`
+	MaxSequence  uint64 `json:"max_sequence,omitempty"`
+	MaxTimestamp int64  `json:"max_timestamp,omitempty"`
 }
 
 func (g *EnumerateSegment) GetDiscriminator() string {

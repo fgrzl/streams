@@ -87,12 +87,14 @@ func (q *quorumImpl) GetNodeCount() int {
 
 // GetWriteCount returns the write quorum value
 func (q *quorumImpl) GetWriteCount() int {
-	// requires majority
-	return q.GetNodeCount()/2 + 1
+	return q.majority()
 }
 
 // GetReadCount returns the read quorum value
 func (q *quorumImpl) GetReadCount() int {
-	// requires majority
+	return q.majority()
+}
+
+func (q *quorumImpl) majority() int {
 	return q.GetNodeCount()/2 + 1
 }

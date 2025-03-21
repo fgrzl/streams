@@ -12,6 +12,7 @@ type Entry = server.Entry
 type Record = server.Record
 type SegmentStatus = server.SegmentStatus
 type ConsumeSpace = server.ConsumeSpace
+type Consume = server.Consume
 type ConsumeSegment = server.ConsumeSegment
 type Produce = server.Produce
 type GetSpaces = server.GetSpaces
@@ -33,6 +34,9 @@ type Client interface {
 
 	// Get the last entry in a stream.
 	Peek(ctx context.Context, space, segment string) (*Entry, error)
+
+	// Consume the space. This will interleave all of the streams in the space.
+	Consume(ctx context.Context, args *Consume) enumerators.Enumerator[*Entry]
 
 	// Consume the space. This will interleave all of the streams in the space.
 	ConsumeSpace(ctx context.Context, args *ConsumeSpace) enumerators.Enumerator[*Entry]
@@ -137,6 +141,14 @@ func (d *DefaultClient) Produce(ctx context.Context, space, segment string, entr
 	}(stream, entries)
 
 	return broker.NewStreamEnumerator[*SegmentStatus](stream)
+}
+
+func (d *DefaultClient) Consume(ctx context.Context, args *Consume) enumerators.Enumerator[*Entry] {
+	stream, err := d.bus.CallStream(args)
+	if err != nil {
+		return enumerators.Error[*Entry](err)
+	}
+	return broker.NewStreamEnumerator[*Entry](stream)
 }
 
 func (d *DefaultClient) SubcribeToSpace(space string, handler func(*SegmentStatus)) (broker.Subscription, error) {

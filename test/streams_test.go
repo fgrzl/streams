@@ -1,9 +1,11 @@
 package streams_test
 
 import (
+	"runtime"
 	"testing"
 
 	"github.com/fgrzl/enumerators"
+	"github.com/fgrzl/lexkey"
 	"github.com/fgrzl/streams"
 
 	"github.com/stretchr/testify/assert"
@@ -141,6 +143,36 @@ func TestConsumeSpace(t *testing.T) {
 			// Assert
 			assert.NoError(t, err)
 			assert.Len(t, entries, 5_000)
+		})
+	}
+}
+
+func TestConsume(t *testing.T) {
+	for name, bus := range configurations(t) {
+		t.Run("should consume interleaved spaces "+name, func(t *testing.T) {
+			// Arrange
+			ctx := t.Context()
+			client := streams.NewClient(bus)
+			setupConsumerData(t, client)
+			runtime.Gosched()
+
+			args := &streams.Consume{
+				Offsets: map[string]lexkey.LexKey{
+					"space0": {},
+					"space1": {},
+					"space2": {},
+					"space3": {},
+					"space4": {},
+				},
+			}
+
+			// Act
+			results := client.Consume(ctx, args)
+			entries, err := enumerators.ToSlice(results)
+
+			// Assert
+			assert.NoError(t, err)
+			assert.Len(t, entries, 25_000)
 		})
 	}
 }

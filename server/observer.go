@@ -42,6 +42,7 @@ type Observer interface {
 	HandleEnumerateSegment(*EnumerateSegment, broker.BidiStream)
 	HandleSyncrhronize(*Synchronize, broker.BidiStream)
 	HandleProduce(*Produce, broker.BidiStream)
+	HandleConsume(*Consume, broker.BidiStream)
 
 	// Close the observer
 	Close()
@@ -141,6 +142,7 @@ func (o *DefaultObserver) registerHandlers() error {
 		func() error { return RegisterStreamHandler(o, &ConsumeSegment{}, o.HandleConsumeSegment) },
 		func() error { return RegisterStreamHandler(o, &EnumerateSegment{}, o.HandleEnumerateSegment) },
 		func() error { return RegisterStreamHandler(o, &Produce{}, o.HandleProduce) },
+		func() error { return RegisterStreamHandler(o, &Consume{}, o.HandleConsume) },
 	}
 
 	// Execute all standard handlers
@@ -391,6 +393,11 @@ func (o *DefaultObserver) HandleProduce(args *Produce, stream broker.BidiStream)
 		}
 	}
 	stream.CloseSend(nil)
+}
+
+func (o *DefaultObserver) HandleConsume(args *Consume, stream broker.BidiStream) {
+	enumerator := o.service.Consume(o.ctx, args)
+	streamEntries(stream, enumerator)
 }
 
 func (o *DefaultObserver) HandleGetSpaces(args *GetSpaces, stream broker.BidiStream) {

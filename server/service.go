@@ -31,25 +31,28 @@ const (
 
 var (
 	Notifications = []broker.Routeable{
-		&Transaction{},
-		&Commit{},
-		&Rollback{},
-		&Reconcile{},
-		&ConfirmSpaceOffset{},
-		&ConfirmSegmentOffset{},
 		&ACK{},
+		&Commit{},
+		&ConfirmSegmentOffset{},
+		&ConfirmSpaceOffset{},
 		&NACK{},
 		&NodeHeartbeat{},
 		&NodeShutdown{},
+		&Reconcile{},
+		&Rollback{},
+		&Transaction{},
 	}
 
 	Streams = []broker.Routeable{
-		&GetStatus{},
-		&GetSpaces{},
-		&GetSegments{},
-		&Peek{},
-		&ConsumeSpace{},
+		&Consume{},
 		&ConsumeSegment{},
+		&ConsumeSpace{},
+		&EnumerateSegment{},
+		&EnumerateSpace{},
+		&GetSegments{},
+		&GetSpaces{},
+		&GetStatus{},
+		&Peek{},
 		&Produce{},
 		&Synchronize{},
 	}
@@ -86,6 +89,9 @@ type Service interface {
 
 	// Get the last entry in a stream.
 	Peek(ctx context.Context, space, segment string) (*Entry, error)
+
+	// Consume a interleaved spaces with coordination of the quorum.
+	Consume(ctx context.Context, args *Consume) enumerators.Enumerator[*Entry]
 
 	// Produce stream entries.
 	Produce(ctx context.Context, args *Produce, entries enumerators.Enumerator[*Record]) enumerators.Enumerator[*SegmentStatus]
@@ -428,6 +434,22 @@ func (s *DefaultService) Produce(ctx context.Context, args *Produce, entries enu
 
 			return status, nil
 		})
+}
+
+func (s *DefaultService) Consume(ctx context.Context, args *Consume) enumerators.Enumerator[*Entry] {
+	var spaces []enumerators.Enumerator[*Entry]
+	for space, offset := range args.Offsets {
+		spaces = append(spaces, s.ConsumeSpace(ctx, &ConsumeSpace{
+			Space:        space,
+			MinTimestamp: args.MinTimestamp,
+			MaxTimestamp: args.MaxTimestamp,
+			Offset:       offset,
+		}))
+	}
+
+	return enumerators.Interleave(spaces, func(e *Entry) int64 {
+		return e.Timestamp
+	})
 }
 
 //
