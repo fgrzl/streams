@@ -4,9 +4,35 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/fgrzl/json/polymorphic"
 	"github.com/fgrzl/lexkey"
 	"github.com/google/uuid"
 )
+
+func init() {
+	polymorphic.Register(func() *ACK { return &ACK{} })
+	polymorphic.Register(func() *Commit { return &Commit{} })
+	polymorphic.Register(func() *ConfirmSegmentOffset { return &ConfirmSegmentOffset{} })
+	polymorphic.Register(func() *ConfirmSpaceOffset { return &ConfirmSpaceOffset{} })
+	polymorphic.Register(func() *Consume { return &Consume{} })
+	polymorphic.Register(func() *ConsumeSegment { return &ConsumeSegment{} })
+	polymorphic.Register(func() *ConsumeSpace { return &ConsumeSpace{} })
+	polymorphic.Register(func() *EnumerateSegment { return &EnumerateSegment{} })
+	polymorphic.Register(func() *EnumerateSpace { return &EnumerateSpace{} })
+	polymorphic.Register(func() *GetSegments { return &GetSegments{} })
+	polymorphic.Register(func() *GetSpaces { return &GetSpaces{} })
+	polymorphic.Register(func() *GetStatus { return &GetStatus{} })
+	polymorphic.Register(func() *NACK { return &NACK{} })
+	polymorphic.Register(func() *NodeHeartbeat { return &NodeHeartbeat{} })
+	polymorphic.Register(func() *NodeShutdown { return &NodeShutdown{} })
+	polymorphic.Register(func() *Peek { return &Peek{} })
+	polymorphic.Register(func() *Produce { return &Produce{} })
+	polymorphic.Register(func() *Reconcile { return &Reconcile{} })
+	polymorphic.Register(func() *Rollback { return &Rollback{} })
+	polymorphic.Register(func() *Synchronize { return &Synchronize{} })
+	polymorphic.Register(func() *Transaction { return &Transaction{} })
+	polymorphic.Register(func() *TRX { return &TRX{} })
+}
 
 type GetStatus struct{}
 
