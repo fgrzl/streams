@@ -3,7 +3,7 @@ module github.com/fgrzl/streams
 go 1.24.0
 
 require (
-	github.com/cockroachdb/pebble/v2 v2.0.2
+	github.com/cockroachdb/pebble/v2 v2.0.3
 	github.com/fgrzl/enumerators v0.0.0-20250222224518-ba7753d0550c
 	github.com/fgrzl/json v0.0.0-20250314132819-1e13745bbbc6
 	github.com/fgrzl/lexkey v0.0.0-20250305171121-7cde75a200b5
@@ -43,6 +43,6 @@ require (
 	golang.org/x/sys v0.31.0 // indirect
 	golang.org/x/term v0.30.0 // indirect
 	golang.org/x/text v0.23.0 // indirect
-	google.golang.org/protobuf v1.36.5 // indirect
+	google.golang.org/protobuf v1.36.6 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
