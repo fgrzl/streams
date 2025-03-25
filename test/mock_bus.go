@@ -85,6 +85,8 @@ func (t *mockBus) CallStream(args broker.Routeable) (broker.BidiStream, error) {
 	if len(handlersToExecute) > 0 {
 		server := NewMockBidiStream()
 		LinkStreams(client, server)
+
+		// NOSONAR: math/rand is acceptable for non-security-related selection
 		randomHandler := handlersToExecute[rand.Intn(len(handlersToExecute))]
 		go randomHandler(args, server)
 	} else {
