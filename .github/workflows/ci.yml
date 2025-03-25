@@ -41,10 +41,5 @@ jobs:
       - name: test
         run: go test ./... -v -coverprofile=coverage.out
 
-  cleanup:
-    runs-on: ubuntu-latest
-    timeout-minutes: 1
-
-    steps:
       - name: workflow cleanup
         uses: fgrzl/workflow-cleanup@v1
