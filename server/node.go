@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"sync"
 
 	"github.com/fgrzl/streams/broker"
@@ -29,8 +30,10 @@ func NewNode(bus broker.Bus, path string) (*Node, error) {
 	}
 
 	if err := service.Synchronize(ctx); err != nil {
-		service.Close()
-		return nil, err
+		if !errors.Is(err, broker.ErrNoResponders) {
+			service.Close()
+			return nil, err
+		}
 	}
 
 	observer, err := NewDefaultObserver(bus, service, quorum)

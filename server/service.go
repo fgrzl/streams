@@ -19,9 +19,9 @@ import (
 )
 
 const (
-	// Prefixes all keys in the database or either (DATA, IDX, TRX)
+	// Prefixes all keys in the database or either (DATA, INV, TRX)
 	DATA        = "DAT"
-	INVENTORY   = "IDX"
+	INVENTORY   = "INV"
 	TRANSACTION = "TRX"
 
 	// Additional key parts

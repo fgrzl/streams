@@ -1,7 +1,13 @@
 package broker
 
 import (
+	"errors"
+
 	"github.com/fgrzl/json/polymorphic"
+)
+
+var (
+	ErrNoResponders = errors.New("nats: no responders available for request")
 )
 
 type Routeable interface {
