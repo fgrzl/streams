@@ -13,7 +13,6 @@ import (
 	"github.com/cockroachdb/pebble/v2"
 	"github.com/fgrzl/enumerators"
 	"github.com/fgrzl/lexkey"
-	"github.com/fgrzl/streams/broker"
 	"github.com/fgrzl/timestamp"
 	"github.com/google/uuid"
 )
@@ -27,39 +26,6 @@ const (
 	// Additional key parts
 	SPACES   = "SPACES"
 	SEGMENTS = "SEGMENTS"
-)
-
-var (
-	Replies = []broker.Routeable{
-		&ACK{},
-		&NACK{},
-	}
-
-	Notifications = []broker.Routeable{
-		&Commit{},
-		&ConfirmSegmentOffset{},
-		&ConfirmSpaceOffset{},
-		&NodeHeartbeat{},
-		&NodeShutdown{},
-		&Reconcile{},
-		&Rollback{},
-		&Transaction{},
-		&SegmentStatus{},
-	}
-
-	Streams = []broker.Routeable{
-		&Consume{},
-		&ConsumeSegment{},
-		&ConsumeSpace{},
-		&EnumerateSegment{},
-		&EnumerateSpace{},
-		&GetSegments{},
-		&GetSpaces{},
-		&GetStatus{},
-		&Peek{},
-		&Produce{},
-		&Synchronize{},
-	}
 )
 
 type Service interface {
