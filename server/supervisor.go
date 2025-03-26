@@ -51,6 +51,9 @@ type Supervisor interface {
 
 	// Syncronize
 	Synchronize(context.Context, *Synchronize) enumerators.Enumerator[*Entry]
+
+	// Notify
+	Notify(context.Context, *SegmentStatus) error
 }
 
 func NewDefualtSupervisor(bus broker.Bus, quorum Quorum) Supervisor {
@@ -92,6 +95,10 @@ func (d *DefualtSupervisor) ConfirmSegmentOffset(ctx context.Context, args *Conf
 //
 // Streams
 //
+
+func (d *DefualtSupervisor) Notify(ctx context.Context, args *SegmentStatus) error {
+	return d.bus.Notify(args)
+}
 
 func (d *DefualtSupervisor) Synchronize(ctx context.Context, args *Synchronize) enumerators.Enumerator[*Entry] {
 	stream, err := d.bus.CallStream(args)

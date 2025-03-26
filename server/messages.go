@@ -29,6 +29,7 @@ func init() {
 	polymorphic.Register(func() *Produce { return &Produce{} })
 	polymorphic.Register(func() *Reconcile { return &Reconcile{} })
 	polymorphic.Register(func() *Rollback { return &Rollback{} })
+	polymorphic.Register(func() *SegmentStatus { return &SegmentStatus{} })
 	polymorphic.Register(func() *Synchronize { return &Synchronize{} })
 	polymorphic.Register(func() *Transaction { return &Transaction{} })
 	polymorphic.Register(func() *TRX { return &TRX{} })

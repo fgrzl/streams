@@ -430,7 +430,9 @@ func (s *DefaultService) Produce(ctx context.Context, args *Produce, entries enu
 				LastTimestamp:  entries[len(entries)-1].Timestamp,
 			}
 
-			// todo publish notification
+			if err := s.supervisor.Notify(ctx, status); err != nil {
+				slog.Error("Error notifying supervisor", "error", err)
+			}
 
 			return status, nil
 		})
