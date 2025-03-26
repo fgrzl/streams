@@ -152,7 +152,9 @@ func (d *DefaultClient) Consume(ctx context.Context, args *Consume) enumerators.
 }
 
 func (d *DefaultClient) SubcribeToSpace(space string, handler func(*SegmentStatus)) (broker.Subscription, error) {
-	return d.bus.Subscribe(space, func(r broker.Routeable) {
+	status := &SegmentStatus{Space: space}
+	route := status.GetRoute()
+	return d.bus.Subscribe(route, func(r broker.Routeable) {
 		if status, ok := r.(*SegmentStatus); ok {
 			handler(status)
 		}
@@ -160,7 +162,9 @@ func (d *DefaultClient) SubcribeToSpace(space string, handler func(*SegmentStatu
 }
 
 func (d *DefaultClient) SubcribeToSegment(space, segment string, handler func(*SegmentStatus)) (broker.Subscription, error) {
-	return d.bus.Subscribe(space+"."+segment, func(r broker.Routeable) {
+	status := &SegmentStatus{Space: space, Segment: segment}
+	route := status.GetRoute()
+	return d.bus.Subscribe(route, func(r broker.Routeable) {
 		if status, ok := r.(*SegmentStatus); ok {
 			handler(status)
 		}

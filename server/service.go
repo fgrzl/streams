@@ -97,10 +97,14 @@ func (s *SegmentStatus) GetDiscriminator() string {
 }
 
 func (s *SegmentStatus) GetRoute() string {
-	if s.Segment == "" || s.Space == "" {
-		return "status.>"
+	route := "status"
+	if s.Space != "" {
+		return "." + s.Space
 	}
-	return "status." + s.Space + "." + s.Segment
+	if s.Segment != "" {
+		return "." + s.Segment
+	}
+	return route
 }
 
 type Record struct {
