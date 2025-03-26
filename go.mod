@@ -5,8 +5,8 @@ go 1.24.0
 require (
 	github.com/cockroachdb/pebble/v2 v2.0.3
 	github.com/fgrzl/enumerators v0.0.0-20250222224518-ba7753d0550c
-	github.com/fgrzl/json v0.0.0-20250314132819-1e13745bbbc6
-	github.com/fgrzl/lexkey v0.0.0-20250305171121-7cde75a200b5
+	github.com/fgrzl/json v0.0.0-20250325212654-367f0d0059de
+	github.com/fgrzl/lexkey v0.0.0-20250325211226-cb730c73c314
 	github.com/fgrzl/logging v0.0.0-20250316183444-a0ee4e3ff2b2
 	github.com/fgrzl/timestamp v0.0.0-20250225130908-89948d7bd71d
 	github.com/golang/snappy v1.0.0
