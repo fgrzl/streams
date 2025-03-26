@@ -30,12 +30,15 @@ const (
 )
 
 var (
-	Notifications = []broker.Routeable{
+	Replies = []broker.Routeable{
 		&ACK{},
+		&NACK{},
+	}
+
+	Notifications = []broker.Routeable{
 		&Commit{},
 		&ConfirmSegmentOffset{},
 		&ConfirmSpaceOffset{},
-		&NACK{},
 		&NodeHeartbeat{},
 		&NodeShutdown{},
 		&Reconcile{},
@@ -128,7 +131,10 @@ func (s *SegmentStatus) GetDiscriminator() string {
 }
 
 func (s *SegmentStatus) GetRoute() string {
-	return s.Space + "." + s.Segment
+	if s.Segment == "" || s.Space == "" {
+		return "status.>"
+	}
+	return "status." + s.Space + "." + s.Segment
 }
 
 type Record struct {
