@@ -41,6 +41,7 @@ var (
 		&Reconcile{},
 		&Rollback{},
 		&Transaction{},
+		&SegmentStatus{},
 	}
 
 	Streams = []broker.Routeable{
