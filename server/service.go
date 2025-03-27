@@ -99,10 +99,10 @@ func (s *SegmentStatus) GetDiscriminator() string {
 func (s *SegmentStatus) GetRoute() string {
 	route := "status"
 	if s.Space != "" {
-		return "." + s.Space
+		route += "." + s.Space
 	}
 	if s.Segment != "" {
-		return "." + s.Segment
+		route += "." + s.Segment
 	}
 	return route
 }
