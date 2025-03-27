@@ -204,7 +204,7 @@ func (s *DefaultService) calculateTimeBounds(current, min, max int64) struct{ Mi
 
 func (s *DefaultService) getSpaceLowerBound(space string, minTS int64, offset lexkey.LexKey) lexkey.LexKey {
 	if len(offset) > 0 {
-		return offset
+		return lexkey.EncodeFirst(offset)
 	}
 	return lexkey.EncodeFirst(DATA, SPACES, space, minTS)
 }

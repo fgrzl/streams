@@ -6,7 +6,7 @@ require (
 	github.com/cockroachdb/pebble/v2 v2.0.3
 	github.com/fgrzl/enumerators v0.0.0-20250222224518-ba7753d0550c
 	github.com/fgrzl/json v0.0.0-20250325212654-367f0d0059de
-	github.com/fgrzl/lexkey v0.0.0-20250325211226-cb730c73c314
+	github.com/fgrzl/lexkey v0.0.0-20250327162459-c35fd7d51c06
 	github.com/fgrzl/logging v0.0.0-20250316183444-a0ee4e3ff2b2
 	github.com/fgrzl/timestamp v0.0.0-20250225130908-89948d7bd71d
 	github.com/golang/snappy v1.0.0
