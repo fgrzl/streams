@@ -1,7 +1,8 @@
 package streams_test
 
 import (
-	"math/rand"
+	"crypto/rand"
+	"math/big"
 	"sync"
 
 	"github.com/fgrzl/streams/broker"
@@ -86,8 +87,8 @@ func (t *mockBus) CallStream(args broker.Routeable) (broker.BidiStream, error) {
 		server := NewMockBidiStream()
 		LinkStreams(client, server)
 
-		// NOSONAR: math/rand is acceptable for non-security-related selection
-		randomHandler := handlersToExecute[rand.Intn(len(handlersToExecute))]
+		r := CryptoRandInt(0, len(handlersToExecute))
+		randomHandler := handlersToExecute[r]
 		go randomHandler(args, server)
 	} else {
 		client.Close(nil)
@@ -135,4 +136,15 @@ func (t *TestSubscription) Unsubscribe() {
 			delete(t.bus.streamHandlers, t.key)
 		}
 	}
+}
+
+func CryptoRandInt(min, max int) int {
+	if min >= max {
+		return 0
+	}
+	nBig, err := rand.Int(rand.Reader, big.NewInt(int64(max-min)))
+	if err != nil {
+		return 0
+	}
+	return int(nBig.Int64()) + min
 }
