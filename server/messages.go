@@ -35,6 +35,54 @@ func init() {
 	polymorphic.Register(func() *TRX { return &TRX{} })
 }
 
+type SegmentStatus struct {
+	Space          string `json:"space"`
+	Segment        string `json:"segment"`
+	FirstSequence  uint64 `json:"first_sequence"`
+	FirstTimestamp int64  `json:"first_timestamp"`
+	LastSequence   uint64 `json:"last_sequence"`
+	LastTimestamp  int64  `json:"last_timestamp"`
+}
+
+func (s *SegmentStatus) GetDiscriminator() string {
+	return fmt.Sprintf("%T", s)
+}
+
+func (s *SegmentStatus) GetRoute() string {
+	route := "status"
+	if s.Space != "" {
+		route += "." + s.Space
+	}
+	if s.Segment != "" {
+		route += "." + s.Segment
+	}
+	return route
+}
+
+type Record struct {
+	Sequence uint64            `json:"sequence"`
+	Payload  []byte            `json:"payload"`
+	Metadata map[string]string `json:"metadata,omitempty"`
+}
+
+type Entry struct {
+	Sequence  uint64            `json:"sequence"`
+	Timestamp int64             `json:"timestamp,omitempty"`
+	TRX       TRX               `json:"trx"`
+	Payload   []byte            `json:"payload"`
+	Metadata  map[string]string `json:"metadata,omitempty"`
+	Space     string            `json:"space"`
+	Segment   string            `json:"segment"`
+}
+
+func (e *Entry) GetSpaceOffset() lexkey.LexKey {
+	return lexkey.Encode(DATA, SPACES, e.Space, e.Timestamp, e.Segment, e.Sequence)
+}
+
+func (e *Entry) GetSegmentOffset() lexkey.LexKey {
+	return lexkey.Encode(DATA, SEGMENTS, e.Space, e.Segment, e.Sequence)
+}
+
 type GetStatus struct{}
 
 func (g *GetStatus) GetDiscriminator() string {
