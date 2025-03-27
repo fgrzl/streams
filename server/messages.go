@@ -49,14 +49,7 @@ func (s *SegmentStatus) GetDiscriminator() string {
 }
 
 func (s *SegmentStatus) GetRoute() string {
-	route := "status"
-	if s.Space != "" {
-		route += "." + s.Space
-	}
-	if s.Segment != "" {
-		route += "." + s.Segment
-	}
-	return route
+	return "segment_status"
 }
 
 type Record struct {
@@ -491,6 +484,7 @@ func (a *NACK) GetRoute() string {
 	return GetReplyRoute(a.ID)
 }
 
-func GetReplyRoute(messageId uuid.UUID) string {
-	return "reply." + messageId.String()
+func GetReplyRoute(messageID uuid.UUID) string {
+	// creates a unique reply route from the messageID
+	return "reply." + messageID.String()
 }
