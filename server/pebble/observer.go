@@ -1,4 +1,4 @@
-package server
+package pebble
 
 import (
 	"bytes"
@@ -11,6 +11,7 @@ import (
 
 	"github.com/fgrzl/enumerators"
 	"github.com/fgrzl/streams/broker"
+	"github.com/fgrzl/streams/server"
 	"github.com/fgrzl/timestamp"
 	"github.com/google/uuid"
 )
@@ -275,13 +276,13 @@ func (o *DefaultObserver) HandleWrite(args *Transaction) {
 	}
 
 	// Check if the error is a known type
-	var qErr *StreamsError
+	var qErr *server.StreamsError
 	if errors.As(err, &qErr) {
 		switch qErr.Code {
-		case ErrCodeTransient:
+		case server.ErrCodeTransient:
 			slog.Warn("transient write operation failure", "error", err)
 			return // Do nothing
-		case ErrCodePermanent:
+		case server.ErrCodePermanent:
 			slog.Warn("permanent write operation failure", "error", err)
 			o.bus.Notify(args.TRX.ToNACK(o.quorum.GetNode()))
 			return
@@ -305,13 +306,13 @@ func (o *DefaultObserver) HandleCommit(args *Commit) {
 	}
 
 	// Check if the error is a known type
-	var qErr *StreamsError
+	var qErr *server.StreamsError
 	if errors.As(err, &qErr) {
 		switch qErr.Code {
-		case ErrCodeTransient:
+		case server.ErrCodeTransient:
 			slog.Warn("transient commit operation failure", "error", err)
 			return // Do nothing
-		case ErrCodePermanent:
+		case server.ErrCodePermanent:
 			slog.Warn("permanent commit operation failure", "error", err)
 			o.bus.Notify(args.TRX.ToNACK(o.quorum.GetNode()))
 			return
@@ -334,13 +335,13 @@ func (o *DefaultObserver) HandleRollback(args *Rollback) {
 	}
 
 	// Check if the error is a known type
-	var qErr *StreamsError
+	var qErr *server.StreamsError
 	if errors.As(err, &qErr) {
 		switch qErr.Code {
-		case ErrCodeTransient:
+		case server.ErrCodeTransient:
 			slog.Warn("transient rollback operation failure", "error", err)
 			return // Do nothing
-		case ErrCodePermanent:
+		case server.ErrCodePermanent:
 			slog.Warn("permanent rollback operation failure", "error", err)
 			o.bus.Notify(args.TRX.ToNACK(o.quorum.GetNode()))
 			return

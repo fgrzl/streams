@@ -23,7 +23,7 @@ require (
 	github.com/cockroachdb/fifo v0.0.0-20240816210425-c5d0cb0b6fc0 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20241215232642-bb51bb14a506 // indirect
 	github.com/cockroachdb/redact v1.1.6 // indirect
-	github.com/cockroachdb/swiss v0.0.0-20250304010804-34a2c6a59016 // indirect
+	github.com/cockroachdb/swiss v0.0.0-20250327203710-2932b022f6df // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/getsentry/sentry-go v0.31.1 // indirect

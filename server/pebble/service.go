@@ -1,9 +1,8 @@
-package server
+package pebble
 
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"log/slog"
 	"math"
@@ -14,19 +13,20 @@ import (
 	"github.com/cockroachdb/pebble/v2"
 	"github.com/fgrzl/enumerators"
 	"github.com/fgrzl/lexkey"
+	"github.com/fgrzl/streams/server"
 	"github.com/fgrzl/timestamp"
 	"github.com/google/uuid"
 )
 
 const (
 	// Prefixes all keys in the database or either (DATA, INV, TRX)
-	DATA        = "DAT"
-	INVENTORY   = "INV"
-	TRANSACTION = "TRX"
+	DATA        = server.DATA
+	INVENTORY   = server.INVENTORY
+	TRANSACTION = server.TRANSACTION
 
 	// Additional key parts
-	SPACES   = "SPACES"
-	SEGMENTS = "SEGMENTS"
+	SPACES   = server.SPACES
+	SEGMENTS = server.SEGMENTS
 
 	// Log Messages
 	LOG_DEBUG_COMMIT_TRANSACTION      = "Committing transaction"
@@ -56,28 +56,7 @@ const (
 	LOG_ERROR_UPDATE_INVENTORY        = "Error updating inventory"
 	LOG_ERROR_WRITE_TRANSACTION       = "Error writing transaction"
 	LOG_TIMEOUT_SHUTDOWN              = "Timeout waiting for tasks to complete, proceeding with shutdown"
-
-	// Error Messages
-	ERR_COMMIT_BATCH             = "failed to commit batch"
-	ERR_GET_TRANSACTION          = "failed to get transaction"
-	ERR_MARSHAL_ENTRY            = "failed to marshal entry"
-	ERR_MARSHAL_TRX              = "failed to marshal transaction"
-	ERR_OPEN_DB                  = "failed to open pebble db"
-	ERR_SEQ_NUMBER_AHEAD         = "sequence number mismatch, the node is ahead"
-	ERR_SEQ_NUMBER_BEHIND        = "sequence number mismatch, the node is behind"
-	ERR_SEQUENCE_MISMATCH        = "sequence mismatch"
-	ERR_SET_ENTRY_SEGMENT        = "failed to set entry in segment"
-	ERR_SET_ENTRY_SPACE          = "failed to set entry in space"
-	ERR_TRX_EMPTY                = "transaction is empty"
-	ERR_TRX_ID_MISMATCH          = "Transaction ID mismatch"
-	ERR_TRX_NOT_FOUND            = "transaction not found"
-	ERR_TRX_NUMBER_AHEAD         = "transaction number mismatch, the node is ahead"
-	ERR_TRX_NUMBER_BEHIND        = "transaction number mismatch, the node is behind"
-	ERR_TRX_PENDING              = "transaction is pending"
-	ERR_UNMARSHAL_TRX            = "failed to unmarshal transaction"
-	ERR_UPDATE_SEGMENT_INVENTORY = "failed to update segment inventory"
-	ERR_UPDATE_SPACE_INVENTORY   = "failed to update space inventory"
-	ERR_WRITE_TRX                = "failed to write transaction"
+	LOG_ERROR_OPEN_DB                 = "Error opening pebble db"
 )
 
 // Service interface remains unchanged
@@ -105,7 +84,7 @@ type Service interface {
 
 type DefaultService struct {
 	db         *pebble.DB
-	cache      *ExpiringCache
+	cache      *server.ExpiringCache
 	supervisor Supervisor
 	wg         sync.WaitGroup
 	disposed   sync.Once
@@ -115,11 +94,12 @@ func NewService(path string, supervisor Supervisor) (Service, error) {
 	dbPath := filepath.Join(path, "streams")
 	db, err := pebble.Open(dbPath, &pebble.Options{})
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", ERR_OPEN_DB, err)
+		slog.Error(LOG_ERROR_OPEN_DB, "error", err)
+		return nil, server.ERR_OPEN_DB
 	}
 	return &DefaultService{
 		db:         db,
-		cache:      NewExpiringCache(2*time.Minute, 1*time.Minute),
+		cache:      server.NewExpiringCache(2*time.Minute, 1*time.Minute),
 		supervisor: supervisor,
 	}, nil
 }
@@ -367,7 +347,7 @@ func (s *DefaultService) createEntries(chunk enumerators.Enumerator[*Record], sp
 	enumerator := enumerators.Map(chunk, func(record *Record) (*Entry, error) {
 		lastSequence++
 		if record.Sequence != lastSequence {
-			return nil, NewPermanentError(ERR_SEQUENCE_MISMATCH)
+			return nil, server.ERR_SEQUENCE_MISMATCH
 		}
 		return &Entry{
 			TRX:       trx,
@@ -433,7 +413,7 @@ func (s *DefaultService) Write(ctx context.Context, transaction *Transaction) er
 
 	lastEntry, err := s.Peek(ctx, transaction.Space, transaction.Segment)
 	if err != nil && !errors.Is(err, pebble.ErrNotFound) {
-		return NewTransientError(err.Error())
+		return server.NewTransientError(err.Error())
 	}
 	if lastEntry == nil {
 		lastEntry = &Entry{}
@@ -487,13 +467,13 @@ func (s *DefaultService) commitValidatedTransaction(transaction *Transaction, ar
 			"transaction", args.TRX.ID,
 			"space", args.Space,
 			"segment", args.Segment)
-		return NewTransientError(ERR_TRX_NOT_FOUND)
+		return server.ERR_TRX_NOT_FOUND
 	}
 	if transaction.TRX.ID != args.TRX.ID {
 		slog.Error(LOG_ERROR_TRANSACTION_ID_MISMATCH,
 			"expected", transaction.TRX.ID,
 			"actual", args.TRX.ID)
-		return NewPermanentError(ERR_TRX_ID_MISMATCH)
+		return server.ERR_TRX_ID_MISMATCH
 	}
 
 	return s.commitTransaction(transaction, args)
@@ -511,7 +491,7 @@ func (s *DefaultService) commitTransaction(transaction *Transaction, args *Commi
 
 	if err := batch.Commit(pebble.Sync); err != nil {
 		slog.Error(LOG_ERROR_COMMIT_BATCH, "error", err)
-		return NewTransientError(ERR_COMMIT_BATCH)
+		return server.ERR_COMMIT_BATCH
 	}
 
 	if err := s.updateInventory(args.Space, args.Segment); err != nil {
@@ -585,7 +565,7 @@ func (s *DefaultService) SynchronizeSegment(ctx context.Context, space, segment 
 
 	lastEntry, err := s.Peek(ctx, space, segment)
 	if err != nil && !errors.Is(err, pebble.ErrNotFound) {
-		return NewTransientError(err.Error())
+		return server.NewTransientError(err.Error())
 	}
 	if lastEntry == nil {
 		lastEntry = &Entry{}
@@ -612,7 +592,7 @@ func (s *DefaultService) synchronizeEntries(entries enumerators.Enumerator[*Entr
 
 		chunk, err := chunks.Current()
 		if err != nil {
-			return NewTransientError(err.Error())
+			return server.NewTransientError(err.Error())
 		}
 		if err := s.synchronizeChunk(batch, chunk); err != nil {
 			return err
@@ -627,10 +607,10 @@ func (s *DefaultService) synchronizeChunk(batch *pebble.Batch, entries enumerato
 	for entries.MoveNext() {
 		entry, err := entries.Current()
 		if err != nil {
-			return NewTransientError(err.Error())
+			return server.NewTransientError(err.Error())
 		}
 		if err := setEntry(batch, entry); err != nil {
-			return NewTransientError(err.Error())
+			return server.NewTransientError(err.Error())
 		}
 	}
 	return s.commitBatch(batch)
@@ -638,7 +618,7 @@ func (s *DefaultService) synchronizeChunk(batch *pebble.Batch, entries enumerato
 
 func (s *DefaultService) commitBatch(batch *pebble.Batch) error {
 	if err := batch.Commit(pebble.Sync); err != nil {
-		return NewTransientError(err.Error())
+		return server.NewTransientError(err.Error())
 	}
 	return nil
 }
@@ -745,9 +725,9 @@ func (s *DefaultService) validateTransactionNumbers(lastEntry *Entry, transactio
 			"expected", lastEntry.TRX.Number+1,
 			"actual", transaction.TRX.Number)
 		if transaction.TRX.Number < lastEntry.TRX.Number+1 {
-			return NewTransientError(ERR_TRX_NUMBER_BEHIND)
+			return server.ERR_TRX_NUMBER_BEHIND
 		}
-		return NewPermanentError(ERR_TRX_NUMBER_AHEAD)
+		return server.ERR_TRX_NUMBER_AHEAD
 	}
 	return nil
 }
@@ -758,9 +738,9 @@ func (s *DefaultService) validateSequenceNumbers(lastEntry *Entry, transaction *
 			"expected", lastEntry.Sequence+1,
 			"actual", transaction.FirstSequence)
 		if transaction.FirstSequence < lastEntry.Sequence+1 {
-			return NewTransientError(ERR_SEQ_NUMBER_BEHIND)
+			return server.ERR_SEQ_NUMBER_BEHIND
 		}
-		return NewPermanentError(ERR_SEQ_NUMBER_AHEAD)
+		return server.ERR_SEQ_NUMBER_AHEAD
 	}
 	return nil
 }
@@ -768,24 +748,24 @@ func (s *DefaultService) validateSequenceNumbers(lastEntry *Entry, transaction *
 func (s *DefaultService) checkExistingTransaction(transactionKey lexkey.LexKey, currentTime int64) error {
 	existing, err := s.loadTransaction(transactionKey)
 	if err != nil {
-		return NewTransientError(err.Error())
+		return server.NewTransientError(err.Error())
 	}
 	if existing != nil && elapsedSeconds(existing.Timestamp, currentTime) < 30 {
 		slog.Error(LOG_ERROR_TRANSACTION_PENDING, "key", transactionKey)
-		return NewTransientError(ERR_TRX_PENDING)
+		return server.ERR_TRX_PENDING
 	}
 	return nil
 }
 
 func (s *DefaultService) writeTransactionData(transactionKey lexkey.LexKey, transaction *Transaction) error {
-	data, err := EncodeTransactionSnappy(transaction)
+	data, err := server.EncodeTransactionSnappy(transaction)
 	if err != nil {
 		slog.Error(LOG_ERROR_MARSHAL_TRANSACTION, "error", err)
-		return NewTransientError(ERR_MARSHAL_TRX)
+		return server.ERR_MARSHAL_TRX
 	}
 	if err := s.db.Set(transactionKey, data, pebble.NoSync); err != nil {
 		slog.Error(LOG_ERROR_SET_TRANSACTION, "error", err)
-		return NewTransientError(ERR_WRITE_TRX)
+		return server.ERR_WRITE_TRX
 	}
 	return nil
 }
@@ -801,7 +781,7 @@ func (s *DefaultService) enumerateEntries(ctx context.Context, lower, upper lexk
 		NewPebbleEnumerator(ctx, s.db, &pebble.IterOptions{LowerBound: lower, UpperBound: upper}),
 		func(kvp KeyValuePair) (*Entry, error) {
 			entry := &Entry{}
-			if err := DecodeEntrySnappy(kvp.Value, entry); err != nil {
+			if err := server.DecodeEntrySnappy(kvp.Value, entry); err != nil {
 				return nil, err
 			}
 			return entry, nil
@@ -815,18 +795,18 @@ func (s *DefaultService) loadTransaction(transactionKey lexkey.LexKey) (*Transac
 			return nil, nil
 		}
 		slog.Error(LOG_ERROR_GET_TRANSACTION, "key", transactionKey, "error", err)
-		return nil, NewTransientError(ERR_GET_TRANSACTION)
+		return nil, server.ERR_GET_TRANSACTION
 	}
 	defer s.closeCloser(closer)
 
 	if len(data) == 0 {
 		slog.Error(LOG_ERROR_EMPTY_TRANSACTION, "key", transactionKey)
-		return nil, NewTransientError(ERR_TRX_EMPTY)
+		return nil, server.ERR_TRX_EMPTY
 	}
 
 	transaction := &Transaction{}
-	if err := DecodeTransactionSnappy(data, transaction); err != nil {
-		return nil, NewTransientError(ERR_UNMARSHAL_TRX)
+	if err := server.DecodeTransactionSnappy(data, transaction); err != nil {
+		return nil, server.ERR_UNMARSHAL_TRX
 	}
 	return transaction, nil
 }
@@ -856,7 +836,7 @@ func (s *DefaultService) getLastEntry(ctx context.Context, space string, segment
 	}
 
 	entry := &Entry{}
-	return entry, DecodeEntrySnappy(iter.Value(), entry)
+	return entry, server.DecodeEntrySnappy(iter.Value(), entry)
 }
 
 func (s *DefaultService) getLastKey(ctx context.Context, lower, upper lexkey.LexKey) (lexkey.LexKey, error) {
@@ -885,10 +865,12 @@ func (s *DefaultService) getInventory(ctx context.Context, lower, upper lexkey.L
 
 func (s *DefaultService) updateInventory(space, segment string) error {
 	if created, err := s.createIfNotExists(lexkey.Encode(INVENTORY, SEGMENTS, space, segment), segment); err != nil {
-		return fmt.Errorf("%s: %w", ERR_UPDATE_SEGMENT_INVENTORY, err)
+		slog.Error(LOG_ERROR_UPDATE_INVENTORY, "error", err)
+		return server.ERR_UPDATE_SEGMENT_INVENTORY
 	} else if created {
 		if _, err := s.createIfNotExists(lexkey.Encode(INVENTORY, SPACES, space), space); err != nil {
-			return fmt.Errorf("%s: %w", ERR_UPDATE_SPACE_INVENTORY, err)
+			slog.Error(LOG_ERROR_UPDATE_INVENTORY, "error", err)
+			return server.ERR_UPDATE_SPACE_INVENTORY
 		}
 	}
 	return nil
@@ -922,22 +904,22 @@ func (s *DefaultService) setCacheEntry(key lexkey.LexKey, value, keyHex string) 
 }
 
 func setEntry(batch *pebble.Batch, entry *Entry) error {
-	data, err := EncodeEntrySnappy(entry)
+	data, err := server.EncodeEntrySnappy(entry)
 	if err != nil {
 		slog.Error(LOG_ERROR_MARSHAL_ENTRY, "error", err)
-		return NewTransientError(ERR_MARSHAL_ENTRY)
+		return server.ERR_MARSHAL_ENTRY
 	}
 
 	dataSpaceKey := entry.GetSpaceOffset()
 	if err := batch.Set(dataSpaceKey, data, pebble.NoSync); err != nil {
 		slog.Error(LOG_ERROR_SET_ENTRY_SPACE, "error", err)
-		return NewTransientError(ERR_SET_ENTRY_SPACE)
+		return server.ERR_SET_ENTRY_SPACE
 	}
 
 	dataSegmentKey := entry.GetSegmentOffset()
 	if err := batch.Set(dataSegmentKey, data, pebble.NoSync); err != nil {
 		slog.Error(LOG_ERROR_SET_ENTRY_SEGMENT, "error", err)
-		return NewTransientError(ERR_SET_ENTRY_SEGMENT)
+		return server.ERR_SET_ENTRY_SEGMENT
 	}
 	return nil
 }

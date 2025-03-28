@@ -12,7 +12,7 @@ import (
 	"github.com/fgrzl/logging"
 	"github.com/fgrzl/streams"
 	"github.com/fgrzl/streams/broker"
-	"github.com/fgrzl/streams/server"
+	"github.com/fgrzl/streams/server/pebble"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
@@ -38,7 +38,7 @@ func clusteredInstance(t *testing.T) broker.Bus {
 }
 
 func setupCluster(t *testing.T, bus broker.Bus) {
-	var nodes []*server.Node
+	var nodes []*pebble.Node
 	for range 5 {
 		nodes = append(nodes, newInstance(t, bus))
 	}
@@ -50,9 +50,9 @@ func setupCluster(t *testing.T, bus broker.Bus) {
 	}
 }
 
-func newInstance(t *testing.T, bus broker.Bus) *server.Node {
+func newInstance(t *testing.T, bus broker.Bus) *pebble.Node {
 	instancePath := filepath.Join(t.TempDir(), uuid.NewString())
-	node, err := server.NewNode(bus, instancePath)
+	node, err := pebble.NewNode(bus, instancePath)
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		slog.Warn("Test Cleanup")

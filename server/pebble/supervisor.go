@@ -1,4 +1,4 @@
-package server
+package pebble
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 
 	"github.com/fgrzl/enumerators"
 	"github.com/fgrzl/streams/broker"
+	"github.com/fgrzl/streams/server"
 	"github.com/google/uuid"
 )
 
@@ -179,7 +180,7 @@ func (d *DefualtSupervisor) waitForQuorum(ctx context.Context, messageID uuid.UU
 	}
 	ch := make(chan any)
 
-	replyRoute := GetReplyRoute(messageID)
+	replyRoute := server.GetReplyRoute(messageID)
 	sub, err := d.bus.Subscribe(replyRoute, func(msg broker.Routeable) { ch <- msg })
 	if err != nil {
 		return fmt.Errorf("failed to subscribe: %w", err)
