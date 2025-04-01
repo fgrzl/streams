@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	"github.com/fgrzl/streams/broker"
+	"github.com/fgrzl/streams/server"
 	"github.com/google/uuid"
 )
 
@@ -11,7 +12,7 @@ type Node struct {
 	id       uuid.UUID
 	Bus      broker.Bus
 	Service  Service
-	Observer Observer
+	Observer *server.DefaultObserver
 	disposed sync.Once
 }
 
@@ -22,7 +23,7 @@ func NewNode(bus broker.Bus, options *TableProviderOptions) (*Node, error) {
 		return nil, err
 	}
 
-	observer, err := NewDefaultObserver(bus, service)
+	observer, err := server.NewDefaultObserver(bus, service)
 	if err != nil {
 		service.Close()
 		return nil, err

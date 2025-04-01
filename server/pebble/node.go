@@ -14,7 +14,7 @@ type Node struct {
 	Bus        broker.Bus
 	Service    Service
 	Supervisor Supervisor
-	Observer   Observer
+	Observer   *PebbleObserver
 	quorum     Quorum
 	disposed   sync.Once
 }
@@ -36,7 +36,7 @@ func NewNode(bus broker.Bus, path string) (*Node, error) {
 		}
 	}
 
-	observer, err := NewDefaultObserver(bus, service, quorum)
+	observer, err := NewPebbleObserver(bus, service, quorum)
 	if err != nil {
 		service.Close()
 		return nil, err

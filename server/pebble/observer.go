@@ -2,7 +2,6 @@ package pebble
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"log/slog"
 	"runtime"
@@ -16,87 +15,18 @@ import (
 	"github.com/google/uuid"
 )
 
-// Observer defines the interface observing events across nodes.
-type Observer interface {
-
-	// Quorum management
-	HandleHeartbeat(*NodeHeartbeat)
-	HandleNodeShutdown(*NodeShutdown)
-
-	// Read lifecycle
-	HandleConfirmSpaceOffset(*ConfirmSpaceOffset)
-	HandleConfirmSegmentOffset(*ConfirmSegmentOffset)
-
-	// Transaction lifecycle
-	HandleWrite(*Transaction)
-	HandleCommit(*Commit)
-	HandleRollback(*Rollback)
-
-	// Streaming data
-	HandleGetClusterStatus(*GetStatus, broker.BidiStream)
-	HandlePeek(*Peek, broker.BidiStream)
-	HandleGetSpaces(*GetSpaces, broker.BidiStream)
-	HandleConsumeSpace(*ConsumeSpace, broker.BidiStream)
-	HandleEnumerateSpace(*EnumerateSpace, broker.BidiStream)
-	HandleGetSegments(*GetSegments, broker.BidiStream)
-	HandleConsumeSegment(*ConsumeSegment, broker.BidiStream)
-	HandleEnumerateSegment(*EnumerateSegment, broker.BidiStream)
-	HandleSyncrhronize(*Synchronize, broker.BidiStream)
-	HandleProduce(*Produce, broker.BidiStream)
-	HandleConsume(*Consume, broker.BidiStream)
-
-	// Close the observer
-	Close()
-}
-
-func RegisterHandler[T broker.Routeable](o *DefaultObserver, arg T, handler func(msg T)) error {
-	sub, err := o.bus.Subscribe(arg.GetRoute(), func(msg broker.Routeable) {
-		select {
-		case <-o.ctx.Done():
-			// Context is done, don't send to the channel
-			return
-		default:
-			// Ensure msg is of type T before type assertion
-			tMsg, ok := msg.(T)
-			if !ok {
-				slog.Warn("Received message of unexpected type")
-				return
-			}
-			handler(tMsg)
-
-		}
-	})
-
-	if err != nil {
-		return err
-	}
-	o.subs = append(o.subs, sub)
-	return nil
-}
-
-func RegisterStreamHandler[T broker.Routeable](o *DefaultObserver, arg T, handler func(msg T, stream broker.BidiStream)) error {
-	sub, err := o.bus.SubscribeToStream(arg.GetRoute(), func(msg broker.Routeable, stream broker.BidiStream) {
-		handler(msg.(T), stream)
-	})
-
-	if err != nil {
-		return err
-	}
-	o.subs = append(o.subs, sub)
-	return nil
-}
-
 // NewQuorumObserver initializes the observer with event bus
-func NewDefaultObserver(bus broker.Bus, service Service, quorum Quorum) (Observer, error) {
+func NewPebbleObserver(bus broker.Bus, service Service, quorum Quorum) (*PebbleObserver, error) {
 
-	ctx, cancel := context.WithCancel(context.Background())
+	defaultObserver, err := server.NewDefaultObserver(bus, service)
+	if err != nil {
+		return nil, err
+	}
 
-	o := &DefaultObserver{
-		ctx:     ctx,
-		cancel:  cancel,
-		quorum:  quorum,
-		bus:     bus,
-		service: service,
+	o := &PebbleObserver{
+		DefaultObserver: defaultObserver,
+		quorum:          quorum,
+		service:         service,
 	}
 
 	if err := o.registerHandlers(); err != nil {
@@ -107,43 +37,46 @@ func NewDefaultObserver(bus broker.Bus, service Service, quorum Quorum) (Observe
 	return o, nil
 }
 
-// DefaultObserver manages quorum state and transaction lifecycle
-type DefaultObserver struct {
-	ctx    context.Context
-	cancel context.CancelFunc
-	quorum Quorum
+// PebbleObserver manages quorum state and transaction lifecycle
+type PebbleObserver struct {
+	*server.DefaultObserver
 
-	bus      broker.Bus
+	quorum   Quorum
 	service  Service
 	subs     []broker.Subscription
 	disposed sync.Once
 }
 
-func (o *DefaultObserver) registerHandlers() error {
+func (o *PebbleObserver) registerHandlers() error {
 	// Register standard handlers
 	standardHandlers := []func() error{
-		func() error { return RegisterHandler(o, &NodeHeartbeat{}, o.HandleHeartbeat) },
-		func() error { return RegisterHandler(o, &NodeShutdown{}, o.HandleNodeShutdown) },
-		func() error { return RegisterHandler(o, &ConfirmSpaceOffset{}, o.HandleConfirmSpaceOffset) },
-		func() error { return RegisterHandler(o, &ConfirmSegmentOffset{}, o.HandleConfirmSegmentOffset) },
-		func() error { return RegisterHandler(o, &Transaction{}, o.HandleWrite) },
-		func() error { return RegisterHandler(o, &Commit{}, o.HandleCommit) },
-		func() error { return RegisterHandler(o, &Rollback{}, o.HandleRollback) },
+		func() error { return server.RegisterHandler(o.DefaultObserver, &NodeHeartbeat{}, o.HandleHeartbeat) },
+		func() error { return server.RegisterHandler(o.DefaultObserver, &NodeShutdown{}, o.HandleNodeShutdown) },
+		func() error {
+			return server.RegisterHandler(o.DefaultObserver, &ConfirmSpaceOffset{}, o.HandleConfirmSpaceOffset)
+		},
+		func() error {
+			return server.RegisterHandler(o.DefaultObserver, &ConfirmSegmentOffset{}, o.HandleConfirmSegmentOffset)
+		},
+		func() error { return server.RegisterHandler(o.DefaultObserver, &Transaction{}, o.HandleWrite) },
+		func() error { return server.RegisterHandler(o.DefaultObserver, &Commit{}, o.HandleCommit) },
+		func() error { return server.RegisterHandler(o.DefaultObserver, &Rollback{}, o.HandleRollback) },
 	}
 
 	// Register stream handlers
 	streamHandlers := []func() error{
-		func() error { return RegisterStreamHandler(o, &GetStatus{}, o.HandleGetClusterStatus) },
-		func() error { return RegisterStreamHandler(o, &Synchronize{}, o.HandleSyncrhronize) },
-		func() error { return RegisterStreamHandler(o, &Peek{}, o.HandlePeek) },
-		func() error { return RegisterStreamHandler(o, &GetSpaces{}, o.HandleGetSpaces) },
-		func() error { return RegisterStreamHandler(o, &ConsumeSpace{}, o.HandleConsumeSpace) },
-		func() error { return RegisterStreamHandler(o, &EnumerateSpace{}, o.HandleEnumerateSpace) },
-		func() error { return RegisterStreamHandler(o, &GetSegments{}, o.HandleGetSegments) },
-		func() error { return RegisterStreamHandler(o, &ConsumeSegment{}, o.HandleConsumeSegment) },
-		func() error { return RegisterStreamHandler(o, &EnumerateSegment{}, o.HandleEnumerateSegment) },
-		func() error { return RegisterStreamHandler(o, &Produce{}, o.HandleProduce) },
-		func() error { return RegisterStreamHandler(o, &Consume{}, o.HandleConsume) },
+		func() error {
+			return server.RegisterStreamHandler(o.DefaultObserver, &GetStatus{}, o.HandleGetClusterStatus)
+		},
+		func() error {
+			return server.RegisterStreamHandler(o.DefaultObserver, &Synchronize{}, o.HandleSyncrhronize)
+		},
+		func() error {
+			return server.RegisterStreamHandler(o.DefaultObserver, &EnumerateSpace{}, o.HandleEnumerateSpace)
+		},
+		func() error {
+			return server.RegisterStreamHandler(o.DefaultObserver, &EnumerateSegment{}, o.HandleEnumerateSegment)
+		},
 	}
 
 	// Execute all standard handlers
@@ -163,7 +96,7 @@ func (o *DefaultObserver) registerHandlers() error {
 	return nil
 }
 
-func (o *DefaultObserver) HandleHeartbeat(args *NodeHeartbeat) {
+func (o *PebbleObserver) HandleHeartbeat(args *NodeHeartbeat) {
 	if args.Node == o.quorum.GetNode() {
 		return
 	}
@@ -187,7 +120,7 @@ func (o *DefaultObserver) HandleHeartbeat(args *NodeHeartbeat) {
 	}
 }
 
-func (o *DefaultObserver) HandleNodeShutdown(args *NodeShutdown) {
+func (o *PebbleObserver) HandleNodeShutdown(args *NodeShutdown) {
 	if args.Node == o.quorum.GetNode() {
 		return
 	}
@@ -198,13 +131,13 @@ func (o *DefaultObserver) HandleNodeShutdown(args *NodeShutdown) {
 // Read Handlers
 //
 
-func (o *DefaultObserver) HandleConfirmSpaceOffset(args *ConfirmSpaceOffset) {
+func (o *PebbleObserver) HandleConfirmSpaceOffset(args *ConfirmSpaceOffset) {
 
 	if args.Node == o.quorum.GetNode() {
 		return
 	}
 
-	offset, err := o.service.GetSpaceOffset(o.ctx, args.Space)
+	offset, err := o.service.GetSpaceOffset(o.Context, args.Space)
 	if err != nil {
 		slog.Warn("ConfirmSpaceOffset could not confirm offset retrieval", "error", err)
 		return
@@ -214,28 +147,28 @@ func (o *DefaultObserver) HandleConfirmSpaceOffset(args *ConfirmSpaceOffset) {
 
 	if result == 0 {
 		// Offsets match, send ACK
-		o.bus.Notify(args.ToACK(o.quorum.GetNode()))
+		o.Bus.Notify(args.ToACK(o.quorum.GetNode()))
 		return
 	}
 
 	if result < 0 {
 		// Node is behind, it cannot confirm, so just log and return
 		slog.Warn("ConfirmSpaceOffset: local offset is behind, cannot confirm", "local_offset", offset, "received_offset", args.Offset)
-		o.service.SynchronizeSpace(o.ctx, args.Space)
+		o.service.SynchronizeSpace(o.Context, args.Space)
 		return
 	}
 
-	o.bus.Notify(args.ToNACK(o.quorum.GetNode()))
+	o.Bus.Notify(args.ToNACK(o.quorum.GetNode()))
 }
 
-func (o *DefaultObserver) HandleConfirmSegmentOffset(args *ConfirmSegmentOffset) {
+func (o *PebbleObserver) HandleConfirmSegmentOffset(args *ConfirmSegmentOffset) {
 	if args.Node == o.quorum.GetNode() {
 		return
 	}
 	space, segment := args.Space, args.Segment
 	for range 3 {
 
-		offset, err := o.service.GetSegmentOffset(o.ctx, space, segment)
+		offset, err := o.service.GetSegmentOffset(o.Context, space, segment)
 		if err != nil {
 			slog.Warn("ConfirmSegmentOffset could not confirm offset retrieval", "error", err)
 			return
@@ -245,17 +178,17 @@ func (o *DefaultObserver) HandleConfirmSegmentOffset(args *ConfirmSegmentOffset)
 
 		if result == 0 {
 			// Offsets match, send ACK
-			o.bus.Notify(args.ToACK(o.quorum.GetNode()))
+			o.Bus.Notify(args.ToACK(o.quorum.GetNode()))
 			return
 		}
 
 		if result < 0 {
 			// Node is behind, it cannot confirm, so just log and return
 			slog.Warn("ConfirmSegmentOffset: local offset is behind, cannot confirm", "local_offset", offset, "received_offset", args.Offset)
-			o.service.SynchronizeSegment(o.ctx, space, segment)
+			o.service.SynchronizeSegment(o.Context, space, segment)
 			break
 		}
-		o.bus.Notify(args.ToNACK(o.quorum.GetNode()))
+		o.Bus.Notify(args.ToNACK(o.quorum.GetNode()))
 	}
 }
 
@@ -263,15 +196,15 @@ func (o *DefaultObserver) HandleConfirmSegmentOffset(args *ConfirmSegmentOffset)
 // Transaction Handlers
 //
 
-func (o *DefaultObserver) HandleWrite(args *Transaction) {
+func (o *PebbleObserver) HandleWrite(args *Transaction) {
 	if args.TRX.Node == o.quorum.GetNode() {
 		return
 	}
 
-	err := o.service.Write(o.ctx, args)
+	err := o.service.Write(o.Context, args)
 
 	if err == nil {
-		o.bus.Notify(args.TRX.ToACK(o.quorum.GetNode()))
+		o.Bus.Notify(args.TRX.ToACK(o.quorum.GetNode()))
 		return
 	}
 
@@ -284,7 +217,7 @@ func (o *DefaultObserver) HandleWrite(args *Transaction) {
 			return // Do nothing
 		case server.ErrCodePermanent:
 			slog.Warn("permanent write operation failure", "error", err)
-			o.bus.Notify(args.TRX.ToNACK(o.quorum.GetNode()))
+			o.Bus.Notify(args.TRX.ToNACK(o.quorum.GetNode()))
 			return
 		}
 	}
@@ -293,15 +226,15 @@ func (o *DefaultObserver) HandleWrite(args *Transaction) {
 	slog.Warn("Write operation failed with unknown error. Not confirming.", "error", err)
 }
 
-func (o *DefaultObserver) HandleCommit(args *Commit) {
+func (o *PebbleObserver) HandleCommit(args *Commit) {
 	if args.TRX.Node == o.quorum.GetNode() {
 		return
 	}
 
-	err := o.service.Commit(o.ctx, args)
+	err := o.service.Commit(o.Context, args)
 
 	if err == nil {
-		o.bus.Notify(args.TRX.ToACK(o.quorum.GetNode()))
+		o.Bus.Notify(args.TRX.ToACK(o.quorum.GetNode()))
 		return
 	}
 
@@ -314,7 +247,7 @@ func (o *DefaultObserver) HandleCommit(args *Commit) {
 			return // Do nothing
 		case server.ErrCodePermanent:
 			slog.Warn("permanent commit operation failure", "error", err)
-			o.bus.Notify(args.TRX.ToNACK(o.quorum.GetNode()))
+			o.Bus.Notify(args.TRX.ToNACK(o.quorum.GetNode()))
 			return
 		}
 	}
@@ -323,14 +256,14 @@ func (o *DefaultObserver) HandleCommit(args *Commit) {
 	slog.Warn("Commit operation failed with unknown error. Not confirming.", "error", err)
 }
 
-func (o *DefaultObserver) HandleRollback(args *Rollback) {
+func (o *PebbleObserver) HandleRollback(args *Rollback) {
 	if args.TRX.Node == o.quorum.GetNode() {
 		return
 	}
-	err := o.service.Rollback(o.ctx, args)
+	err := o.service.Rollback(o.Context, args)
 
 	if err == nil {
-		o.bus.Notify(args.TRX.ToACK(o.quorum.GetNode()))
+		o.Bus.Notify(args.TRX.ToACK(o.quorum.GetNode()))
 		return
 	}
 
@@ -343,7 +276,7 @@ func (o *DefaultObserver) HandleRollback(args *Rollback) {
 			return // Do nothing
 		case server.ErrCodePermanent:
 			slog.Warn("permanent rollback operation failure", "error", err)
-			o.bus.Notify(args.TRX.ToNACK(o.quorum.GetNode()))
+			o.Bus.Notify(args.TRX.ToNACK(o.quorum.GetNode()))
 			return
 		}
 	}
@@ -357,7 +290,7 @@ func (o *DefaultObserver) HandleRollback(args *Rollback) {
 //
 
 // HandleEnumerateSpace implements Observer.
-func (o *DefaultObserver) HandleGetClusterStatus(args *GetStatus, stream broker.BidiStream) {
+func (o *PebbleObserver) HandleGetClusterStatus(args *GetStatus, stream broker.BidiStream) {
 
 	status := o.service.GetClusterStatus()
 	if err := stream.Encode(status); err != nil {
@@ -367,148 +300,56 @@ func (o *DefaultObserver) HandleGetClusterStatus(args *GetStatus, stream broker.
 	stream.Close(nil)
 }
 
-func (o *DefaultObserver) HandleSyncrhronize(args *Synchronize, stream broker.BidiStream) {
+func (o *PebbleObserver) HandleSyncrhronize(args *Synchronize, stream broker.BidiStream) {
 	enumerator := enumerators.FlatMap(
-		o.service.GetSpaces(o.ctx),
+		o.service.GetSpaces(o.Context),
 		func(space string) enumerators.Enumerator[*Entry] {
 			offset := args.OffsetsBySpace[space]
-			return o.service.EnumerateSpace(o.ctx, &EnumerateSpace{Space: space, Offset: offset})
+			return o.service.EnumerateSpace(o.Context, &EnumerateSpace{Space: space, Offset: offset})
 		})
 
-	streamEntries(stream, enumerator)
-}
-
-func (o *DefaultObserver) HandleProduce(args *Produce, stream broker.BidiStream) {
-	entries := broker.NewStreamEnumerator[*Record](stream)
-	results := o.service.Produce(o.ctx, args, entries)
-	defer results.Dispose()
-	for results.MoveNext() {
-		result, err := results.Current()
-		if err != nil {
-			stream.CloseSend(err)
-			return
-		}
-		if err := stream.Encode(result); err != nil {
-			stream.CloseSend(err)
-			return
-		}
-	}
-	stream.CloseSend(nil)
-}
-
-func (o *DefaultObserver) HandleConsume(args *Consume, stream broker.BidiStream) {
-	enumerator := o.service.Consume(o.ctx, args)
-	streamEntries(stream, enumerator)
-}
-
-func (o *DefaultObserver) HandleGetSpaces(args *GetSpaces, stream broker.BidiStream) {
-	enumerator := o.service.GetSpaces(o.ctx)
-	streamNames(stream, enumerator)
+	server.StreamEntries(stream, enumerator)
 }
 
 // HandleEnumerateSpace implements Observer.
-func (o *DefaultObserver) HandlePeek(args *Peek, stream broker.BidiStream) {
-
-	entry, err := o.service.Peek(o.ctx, args.Space, args.Segment)
-	if err != nil {
-		stream.Close(err)
-	}
-	if err := stream.Encode(entry); err != nil {
-		stream.Close(err)
-		return
-	}
-	stream.Close(nil)
-}
-
-// HandleEnumerateSpace implements Observer.
-func (o *DefaultObserver) HandleConsumeSpace(args *ConsumeSpace, stream broker.BidiStream) {
-	enumerator := o.service.ConsumeSpace(o.ctx, args)
-	streamEntries(stream, enumerator)
-}
-
-// HandleEnumerateSpace implements Observer.
-func (o *DefaultObserver) HandleEnumerateSpace(args *EnumerateSpace, stream broker.BidiStream) {
-	enumerator := o.service.EnumerateSpace(o.ctx, args)
-	streamEntries(stream, enumerator)
+func (o *PebbleObserver) HandleEnumerateSpace(args *EnumerateSpace, stream broker.BidiStream) {
+	enumerator := o.service.EnumerateSpace(o.Context, args)
+	server.StreamEntries(stream, enumerator)
 }
 
 // HandleEnumerateSegment implements Observer.
-func (o *DefaultObserver) HandleConsumeSegment(args *ConsumeSegment, stream broker.BidiStream) {
-	enumerator := o.service.ConsumeSegment(o.ctx, args)
-	streamEntries(stream, enumerator)
+func (o *PebbleObserver) HandleEnumerateSegment(args *EnumerateSegment, stream broker.BidiStream) {
+	enumerator := o.service.EnumerateSegment(o.Context, args)
+	server.StreamEntries(stream, enumerator)
 }
 
-// HandleEnumerateSegment implements Observer.
-func (o *DefaultObserver) HandleEnumerateSegment(args *EnumerateSegment, stream broker.BidiStream) {
-	enumerator := o.service.EnumerateSegment(o.ctx, args)
-	streamEntries(stream, enumerator)
-}
-
-// HandleGetSegments implements Observer.
-func (o *DefaultObserver) HandleGetSegments(args *GetSegments, stream broker.BidiStream) {
-	enumerator := o.service.GetSegments(o.ctx, args.Space)
-	streamNames(stream, enumerator)
-}
-
-func (o *DefaultObserver) heartbeat() {
-	o.bus.Notify(&NodeHeartbeat{
+func (o *PebbleObserver) heartbeat() {
+	o.Bus.Notify(&NodeHeartbeat{
 		Node:  o.quorum.GetNode(),
 		Nodes: o.quorum.GetNodes(),
 	})
 }
 
-func (o *DefaultObserver) shutdown() {
-	o.bus.Notify(&NodeShutdown{Node: o.quorum.GetNode()})
-}
-
-func streamNames(stream broker.BidiStream, enumerator enumerators.Enumerator[string]) {
-	defer enumerator.Dispose()
-	for enumerator.MoveNext() {
-		segment, err := enumerator.Current()
-		if err != nil {
-			stream.CloseSend(err)
-			return
-		}
-		if err := stream.Encode(segment); err != nil {
-			stream.CloseSend(err)
-			return
-		}
-	}
-	stream.CloseSend(nil)
-}
-
-func streamEntries(stream broker.BidiStream, enumerator enumerators.Enumerator[*Entry]) {
-	defer enumerator.Dispose()
-	for enumerator.MoveNext() {
-		segment, err := enumerator.Current()
-		if err != nil {
-			stream.CloseSend(err)
-			return
-		}
-		if err := stream.Encode(segment); err != nil {
-			stream.CloseSend(err)
-			return
-		}
-	}
-	stream.CloseSend(nil)
+func (o *PebbleObserver) shutdown() {
+	o.Bus.Notify(&NodeShutdown{Node: o.quorum.GetNode()})
 }
 
 //
 // Close
 //
 
-func (o *DefaultObserver) Close() {
+func (o *PebbleObserver) Close() {
 	o.disposed.Do(func() {
-		o.cancel()
+		o.Cancel()
 		for _, sub := range o.subs {
 			sub.Unsubscribe()
 		}
 		o.subs = nil
-		<-o.ctx.Done()
+		<-o.Context.Done()
 	})
 }
 
-func (o *DefaultObserver) monitor() {
+func (o *PebbleObserver) monitor() {
 	runtime.Gosched()
 
 	// Send initial heartbeat
@@ -518,7 +359,7 @@ func (o *DefaultObserver) monitor() {
 	defer ticker.Stop()
 	for {
 		select {
-		case <-o.ctx.Done():
+		case <-o.Context.Done():
 			o.shutdown()
 			return
 		case <-ticker.C:
