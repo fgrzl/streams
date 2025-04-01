@@ -343,7 +343,7 @@ func (t *Transaction) UnmarshalJSON(data []byte) error {
 
 type TRX struct {
 	ID     uuid.UUID `json:"id"`
-	Node   uuid.UUID `json:"node"`
+	Node   uuid.UUID `json:"node,omitempty"`
 	Number uint64    `json:"number"`
 }
 

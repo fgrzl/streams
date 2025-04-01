@@ -12,6 +12,7 @@ import (
 	"github.com/fgrzl/logging"
 	"github.com/fgrzl/streams"
 	"github.com/fgrzl/streams/broker"
+	"github.com/fgrzl/streams/server/azure"
 	"github.com/fgrzl/streams/server/pebble"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -20,9 +21,36 @@ import (
 func configurations(t *testing.T) map[string]broker.Bus {
 	logging.ConfigureLogging()
 	return map[string]broker.Bus{
+		"azure":     azureInstance(t),
 		"single":    singleInstance(t),
 		"clustered": clusteredInstance(t),
 	}
+}
+
+func azureInstance(t *testing.T) broker.Bus {
+	bus := NewMockBus() // Replace with actual Azure bus initialization if needed
+
+	// Default Azurite configuration for local testing
+	accountName := "devstoreaccount1"
+	accountKey := "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw=="
+	endpoint := "http://127.0.0.1:10002/devstoreaccount1"
+
+	credential, err := azure.NewSharedKeyCredential(accountName, accountKey)
+	if err != nil {
+		panic(err)
+	}
+
+	options := &azure.TableProviderOptions{
+		Prefix:              "test",
+		Table:               uuid.NewString(),
+		Endpoint:            endpoint,
+		SharedKeyCredential: credential,
+	}
+
+	instance, err := azure.NewNode(bus, options)
+	require.NoError(t, err, "failed to create azure service instance")
+	require.NotNil(t, instance, "azure service instance should not be nil")
+	return bus
 }
 
 func singleInstance(t *testing.T) broker.Bus {
