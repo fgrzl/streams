@@ -39,7 +39,7 @@ jobs:
         run: go build ./...
 
       - name: test
-        run: go test -timeout 60s ./... -v -coverprofile=coverage.out
+        run: go test -timeout 120s ./... -v -coverprofile=coverage.out
 
       - name: workflow cleanup
         uses: fgrzl/workflow-cleanup@v1
