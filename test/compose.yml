@@ -5,7 +5,7 @@ services:
     hostname: azurite
     ports:
       - "10002:10002" # Table service port
-    command: "azurite --tableHost 0.0.0.0 --silent"
+    command: "azurite --tableHost 0.0.0.0"
     volumes:
       - type: tmpfs
         target: /data # Azurite's default workspace directory
