@@ -85,6 +85,9 @@ func NewService(bus broker.Bus, opts *TableProviderOptions) (server.Service, err
 	if err := s.createTableIfNotExists(context.Background()); err != nil {
 		return nil, fmt.Errorf("failed to initialize table: %w", err)
 	}
+
+	// todo : complete any transactions that may be in flight during startup, if needed
+
 	return s, nil
 }
 
