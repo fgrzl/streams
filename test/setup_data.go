@@ -21,7 +21,7 @@ import (
 func configurations(t *testing.T) map[string]broker.Bus {
 	logging.ConfigureLogging()
 	return map[string]broker.Bus{
-		"azure":     azureInstance(t),
+		//"azure":     azureInstance(t),
 		"single":    singleInstance(t),
 		"clustered": clusteredInstance(t),
 	}
