@@ -180,7 +180,7 @@ func TestConsume(t *testing.T) {
 func TestAddNewNode(t *testing.T) {
 	for name, bus := range configurations(t) {
 		if name == "azure" {
-			t.Skip("Skipping test for azure configuration")
+			return
 		}
 		t.Run("should consume space "+name, func(t *testing.T) {
 			// Arrange
