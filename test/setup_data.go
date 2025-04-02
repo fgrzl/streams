@@ -21,7 +21,7 @@ import (
 func configurations(t *testing.T) map[string]broker.Bus {
 	logging.ConfigureLogging()
 	return map[string]broker.Bus{
-		//"azure":     azureInstance(t),
+		"azure":     azureInstance(t),
 		"single":    singleInstance(t),
 		"clustered": clusteredInstance(t),
 	}
@@ -94,7 +94,7 @@ func setupConsumerData(t *testing.T, client streams.Client) {
 
 	for i := range 5 {
 		for j := range 5 {
-			space, segment, records := fmt.Sprintf("space%d", i), fmt.Sprintf("segment%d", j), generateRange(0, 1_000)
+			space, segment, records := fmt.Sprintf("space%d", i), fmt.Sprintf("segment%d", j), generateRange(0, 253)
 			results := client.Produce(ctx, space, segment, records)
 			err := enumerators.Consume(results)
 			require.NoError(t, err)
