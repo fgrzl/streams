@@ -3,7 +3,7 @@ module github.com/fgrzl/streams
 go 1.24.0
 
 require (
-	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.17.1
+	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.18.0
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.8.2
 	github.com/Azure/azure-sdk-for-go/sdk/data/aztables v1.3.0
 	github.com/cockroachdb/pebble/v2 v2.0.3
@@ -11,6 +11,7 @@ require (
 	github.com/fgrzl/json v0.0.0-20250325212654-367f0d0059de
 	github.com/fgrzl/lexkey v0.0.0-20250327162459-c35fd7d51c06
 	github.com/fgrzl/logging v0.0.0-20250316183444-a0ee4e3ff2b2
+	github.com/fgrzl/tickle v0.0.0-20250326142409-26a8ec1d1519
 	github.com/fgrzl/timestamp v0.0.0-20250225130908-89948d7bd71d
 	github.com/golang/snappy v1.0.0
 	github.com/google/uuid v1.6.0
@@ -18,7 +19,7 @@ require (
 )
 
 require (
-	github.com/Azure/azure-sdk-for-go/sdk/internal v1.10.0 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/internal v1.11.0 // indirect
 	github.com/AzureAD/microsoft-authentication-library-for-go v1.4.2 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.2 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
