@@ -18,6 +18,12 @@ var (
 	_ broker.Subscription = (*sub)(nil)
 )
 
+func NewHTTP2StreamBus(client *http.Client) broker.StreamBus {
+	return &HTTP2StreamBus{
+		client: client,
+	}
+}
+
 type HTTP2StreamBus struct {
 	client         *http.Client
 	streamHandlers sync.Map
