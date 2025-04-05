@@ -1,6 +1,7 @@
 package broker
 
 import (
+	"context"
 	"errors"
 
 	"github.com/fgrzl/json/polymorphic"
@@ -19,10 +20,17 @@ type SubscriptionHandler func(Routeable)
 type StreamSubscriptionHandler func(Routeable, BidiStream)
 
 type Bus interface {
-	Notify(Routeable) error
-	Subscribe(string, SubscriptionHandler) (Subscription, error)
+	NotificationBus
+	StreamBus
+}
 
-	CallStream(Routeable) (BidiStream, error)
+type NotificationBus interface {
+	Notify(context.Context, Routeable) error
+	Subscribe(string, SubscriptionHandler) (Subscription, error)
+}
+
+type StreamBus interface {
+	CallStream(context.Context, Routeable) (BidiStream, error)
 	SubscribeToStream(string, StreamSubscriptionHandler) (Subscription, error)
 }
 

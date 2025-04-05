@@ -310,7 +310,7 @@ func (s *AzureService) processChunk(ctx context.Context, space, segment string, 
 	}
 
 	status := createSegmentStatus(space, segment, entries)
-	s.notify(status)
+	s.notify(ctx, status)
 	return status, nil
 }
 
@@ -466,8 +466,8 @@ func (s *AzureService) writeBatch(ctx context.Context, entities []Entity) error 
 	return nil
 }
 
-func (s *AzureService) notify(status *server.SegmentStatus) {
-	if err := s.bus.Notify(status); err != nil {
+func (s *AzureService) notify(ctx context.Context, status *server.SegmentStatus) {
+	if err := s.bus.Notify(ctx, status); err != nil {
 		slog.Error(LogErrorNotifySupervisor, "error", err)
 	}
 }

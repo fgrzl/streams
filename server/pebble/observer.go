@@ -147,7 +147,7 @@ func (o *PebbleObserver) HandleConfirmSpaceOffset(args *ConfirmSpaceOffset) {
 
 	if result == 0 {
 		// Offsets match, send ACK
-		o.Bus.Notify(args.ToACK(o.quorum.GetNode()))
+		o.Bus.Notify(o.Context, args.ToACK(o.quorum.GetNode()))
 		return
 	}
 
@@ -158,7 +158,7 @@ func (o *PebbleObserver) HandleConfirmSpaceOffset(args *ConfirmSpaceOffset) {
 		return
 	}
 
-	o.Bus.Notify(args.ToNACK(o.quorum.GetNode()))
+	o.Bus.Notify(o.Context, args.ToNACK(o.quorum.GetNode()))
 }
 
 func (o *PebbleObserver) HandleConfirmSegmentOffset(args *ConfirmSegmentOffset) {
@@ -178,7 +178,7 @@ func (o *PebbleObserver) HandleConfirmSegmentOffset(args *ConfirmSegmentOffset) 
 
 		if result == 0 {
 			// Offsets match, send ACK
-			o.Bus.Notify(args.ToACK(o.quorum.GetNode()))
+			o.Bus.Notify(o.Context, args.ToACK(o.quorum.GetNode()))
 			return
 		}
 
@@ -188,7 +188,7 @@ func (o *PebbleObserver) HandleConfirmSegmentOffset(args *ConfirmSegmentOffset) 
 			o.service.SynchronizeSegment(o.Context, space, segment)
 			break
 		}
-		o.Bus.Notify(args.ToNACK(o.quorum.GetNode()))
+		o.Bus.Notify(o.Context, args.ToNACK(o.quorum.GetNode()))
 	}
 }
 
@@ -204,7 +204,7 @@ func (o *PebbleObserver) HandleWrite(args *Transaction) {
 	err := o.service.Write(o.Context, args)
 
 	if err == nil {
-		o.Bus.Notify(args.TRX.ToACK(o.quorum.GetNode()))
+		o.Bus.Notify(o.Context, args.TRX.ToACK(o.quorum.GetNode()))
 		return
 	}
 
@@ -217,7 +217,7 @@ func (o *PebbleObserver) HandleWrite(args *Transaction) {
 			return // Do nothing
 		case server.ErrCodePermanent:
 			slog.Warn("permanent write operation failure", "error", err)
-			o.Bus.Notify(args.TRX.ToNACK(o.quorum.GetNode()))
+			o.Bus.Notify(o.Context, args.TRX.ToNACK(o.quorum.GetNode()))
 			return
 		}
 	}
@@ -234,7 +234,7 @@ func (o *PebbleObserver) HandleCommit(args *Commit) {
 	err := o.service.Commit(o.Context, args)
 
 	if err == nil {
-		o.Bus.Notify(args.TRX.ToACK(o.quorum.GetNode()))
+		o.Bus.Notify(o.Context, args.TRX.ToACK(o.quorum.GetNode()))
 		return
 	}
 
@@ -247,7 +247,7 @@ func (o *PebbleObserver) HandleCommit(args *Commit) {
 			return // Do nothing
 		case server.ErrCodePermanent:
 			slog.Warn("permanent commit operation failure", "error", err)
-			o.Bus.Notify(args.TRX.ToNACK(o.quorum.GetNode()))
+			o.Bus.Notify(o.Context, args.TRX.ToNACK(o.quorum.GetNode()))
 			return
 		}
 	}
@@ -263,7 +263,7 @@ func (o *PebbleObserver) HandleRollback(args *Rollback) {
 	err := o.service.Rollback(o.Context, args)
 
 	if err == nil {
-		o.Bus.Notify(args.TRX.ToACK(o.quorum.GetNode()))
+		o.Bus.Notify(o.Context, args.TRX.ToACK(o.quorum.GetNode()))
 		return
 	}
 
@@ -276,7 +276,7 @@ func (o *PebbleObserver) HandleRollback(args *Rollback) {
 			return // Do nothing
 		case server.ErrCodePermanent:
 			slog.Warn("permanent rollback operation failure", "error", err)
-			o.Bus.Notify(args.TRX.ToNACK(o.quorum.GetNode()))
+			o.Bus.Notify(o.Context, args.TRX.ToNACK(o.quorum.GetNode()))
 			return
 		}
 	}
@@ -324,14 +324,14 @@ func (o *PebbleObserver) HandleEnumerateSegment(args *EnumerateSegment, stream b
 }
 
 func (o *PebbleObserver) heartbeat() {
-	o.Bus.Notify(&NodeHeartbeat{
+	o.Bus.Notify(o.Context, &NodeHeartbeat{
 		Node:  o.quorum.GetNode(),
 		Nodes: o.quorum.GetNodes(),
 	})
 }
 
 func (o *PebbleObserver) shutdown() {
-	o.Bus.Notify(&NodeShutdown{Node: o.quorum.GetNode()})
+	o.Bus.Notify(o.Context, &NodeShutdown{Node: o.quorum.GetNode()})
 }
 
 //

@@ -1,6 +1,7 @@
 package streams_test
 
 import (
+	"context"
 	"crypto/rand"
 	"math/big"
 	"sync"
@@ -25,7 +26,7 @@ func NewMockBus() broker.Bus {
 }
 
 // Notify finds all the handlers for the type of args and calls them.
-func (t *mockBus) Notify(args broker.Routeable) error {
+func (t *mockBus) Notify(_ context.Context, args broker.Routeable) error {
 	// Get handlers safely under read lock
 	t.mu.RLock()
 	route := args.GetRoute()
@@ -66,7 +67,7 @@ func (t *mockBus) Subscribe(route string, handler broker.SubscriptionHandler) (b
 	return subscription, nil
 }
 
-func (t *mockBus) CallStream(args broker.Routeable) (broker.BidiStream, error) {
+func (t *mockBus) CallStream(_ context.Context, args broker.Routeable) (broker.BidiStream, error) {
 	// Get handlers safely under read lock
 	t.mu.RLock()
 	route := args.GetRoute()

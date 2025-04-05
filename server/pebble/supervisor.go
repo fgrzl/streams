@@ -98,11 +98,11 @@ func (d *DefualtSupervisor) ConfirmSegmentOffset(ctx context.Context, args *Conf
 //
 
 func (d *DefualtSupervisor) Notify(ctx context.Context, args *SegmentStatus) error {
-	return d.bus.Notify(args)
+	return d.bus.Notify(ctx, args)
 }
 
 func (d *DefualtSupervisor) Synchronize(ctx context.Context, args *Synchronize) enumerators.Enumerator[*Entry] {
-	stream, err := d.bus.CallStream(args)
+	stream, err := d.bus.CallStream(ctx, args)
 	if err != nil {
 		return enumerators.Error[*Entry](err)
 	}
@@ -113,7 +113,7 @@ func (d *DefualtSupervisor) GetSpaces(ctx context.Context, args *GetSpaces) enum
 	if d.IsSingleInstance() {
 		return enumerators.Empty[string]()
 	}
-	stream, err := d.bus.CallStream(args)
+	stream, err := d.bus.CallStream(ctx, args)
 	if err != nil {
 		return enumerators.Error[string](err)
 	}
@@ -124,7 +124,7 @@ func (d *DefualtSupervisor) EnumerateSpace(ctx context.Context, args *EnumerateS
 	if d.IsSingleInstance() {
 		return enumerators.Empty[*Entry]()
 	}
-	stream, err := d.bus.CallStream(args)
+	stream, err := d.bus.CallStream(ctx, args)
 	if err != nil {
 		return enumerators.Error[*Entry](err)
 	}
@@ -135,7 +135,7 @@ func (d *DefualtSupervisor) GetSegments(ctx context.Context, args *GetSegments) 
 	if d.IsSingleInstance() {
 		return enumerators.Empty[string]()
 	}
-	stream, err := d.bus.CallStream(args)
+	stream, err := d.bus.CallStream(ctx, args)
 	if err != nil {
 		return enumerators.Error[string](err)
 	}
@@ -146,7 +146,7 @@ func (d *DefualtSupervisor) EnumerateSegment(ctx context.Context, args *Enumerat
 	if d.IsSingleInstance() {
 		return enumerators.Empty[*Entry]()
 	}
-	stream, err := d.bus.CallStream(args)
+	stream, err := d.bus.CallStream(ctx, args)
 	if err != nil {
 		return enumerators.Error[*Entry](err)
 	}
@@ -187,7 +187,7 @@ func (d *DefualtSupervisor) waitForQuorum(ctx context.Context, messageID uuid.UU
 	}
 	defer sub.Unsubscribe()
 
-	if err := d.bus.Notify(args); err != nil {
+	if err := d.bus.Notify(ctx, args); err != nil {
 		return fmt.Errorf("failed to notify: %w", err)
 	}
 

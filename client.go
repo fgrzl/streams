@@ -65,7 +65,7 @@ type DefaultClient struct {
 }
 
 func (d *DefaultClient) GetClusterStatus(ctx context.Context) (*ClusterStatus, error) {
-	stream, err := d.bus.CallStream(&server.GetStatus{})
+	stream, err := d.bus.CallStream(ctx, &server.GetStatus{})
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +77,7 @@ func (d *DefaultClient) GetClusterStatus(ctx context.Context) (*ClusterStatus, e
 }
 
 func (d *DefaultClient) GetSpaces(ctx context.Context) enumerators.Enumerator[string] {
-	stream, err := d.bus.CallStream(&GetSpaces{})
+	stream, err := d.bus.CallStream(ctx, &GetSpaces{})
 	if err != nil {
 		return enumerators.Error[string](err)
 	}
@@ -85,7 +85,7 @@ func (d *DefaultClient) GetSpaces(ctx context.Context) enumerators.Enumerator[st
 }
 
 func (d *DefaultClient) ConsumeSpace(ctx context.Context, args *ConsumeSpace) enumerators.Enumerator[*Entry] {
-	stream, err := d.bus.CallStream(args)
+	stream, err := d.bus.CallStream(ctx, args)
 	if err != nil {
 		return enumerators.Error[*Entry](err)
 	}
@@ -93,7 +93,7 @@ func (d *DefaultClient) ConsumeSpace(ctx context.Context, args *ConsumeSpace) en
 }
 
 func (d *DefaultClient) GetSegments(ctx context.Context, space string) enumerators.Enumerator[string] {
-	stream, err := d.bus.CallStream(&GetSegments{Space: space})
+	stream, err := d.bus.CallStream(ctx, &GetSegments{Space: space})
 	if err != nil {
 		return enumerators.Error[string](err)
 	}
@@ -101,7 +101,7 @@ func (d *DefaultClient) GetSegments(ctx context.Context, space string) enumerato
 }
 
 func (d *DefaultClient) ConsumeSegment(ctx context.Context, args *ConsumeSegment) enumerators.Enumerator[*Entry] {
-	stream, err := d.bus.CallStream(args)
+	stream, err := d.bus.CallStream(ctx, args)
 	if err != nil {
 		return enumerators.Error[*Entry](err)
 	}
@@ -109,7 +109,7 @@ func (d *DefaultClient) ConsumeSegment(ctx context.Context, args *ConsumeSegment
 }
 
 func (d *DefaultClient) Peek(ctx context.Context, space string, segment string) (*Entry, error) {
-	stream, err := d.bus.CallStream(&Peek{Space: space, Segment: segment})
+	stream, err := d.bus.CallStream(ctx, &Peek{Space: space, Segment: segment})
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +121,7 @@ func (d *DefaultClient) Peek(ctx context.Context, space string, segment string) 
 }
 
 func (d *DefaultClient) Produce(ctx context.Context, space, segment string, entries enumerators.Enumerator[*Record]) enumerators.Enumerator[*SegmentStatus] {
-	stream, err := d.bus.CallStream(&Produce{Space: space, Segment: segment})
+	stream, err := d.bus.CallStream(ctx, &Produce{Space: space, Segment: segment})
 	if err != nil {
 		return enumerators.Error[*SegmentStatus](err)
 	}
@@ -144,7 +144,7 @@ func (d *DefaultClient) Produce(ctx context.Context, space, segment string, entr
 }
 
 func (d *DefaultClient) Consume(ctx context.Context, args *Consume) enumerators.Enumerator[*Entry] {
-	stream, err := d.bus.CallStream(args)
+	stream, err := d.bus.CallStream(ctx, args)
 	if err != nil {
 		return enumerators.Error[*Entry](err)
 	}
