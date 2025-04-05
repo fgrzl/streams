@@ -48,10 +48,10 @@ type Client interface {
 	Produce(ctx context.Context, space, segment string, entries enumerators.Enumerator[*Record]) enumerators.Enumerator[*SegmentStatus]
 
 	// Subscribe to a space.
-	SubcribeToSpace(space string, handler func(*SegmentStatus)) (broker.Subscription, error)
+	SubcribeToSpace(ctx context.Context, space string, handler func(*SegmentStatus)) (broker.Subscription, error)
 
 	// Subscribe to a segment.
-	SubcribeToSegment(space, segment string, handler func(*SegmentStatus)) (broker.Subscription, error)
+	SubcribeToSegment(ctx context.Context, space, segment string, handler func(*SegmentStatus)) (broker.Subscription, error)
 }
 
 func NewClient(bus broker.Bus) Client {
@@ -151,20 +151,20 @@ func (d *DefaultClient) Consume(ctx context.Context, args *Consume) enumerators.
 	return broker.NewStreamEnumerator[*Entry](stream)
 }
 
-func (d *DefaultClient) SubcribeToSpace(space string, handler func(*SegmentStatus)) (broker.Subscription, error) {
+func (d *DefaultClient) SubcribeToSpace(ctx context.Context, space string, handler func(*SegmentStatus)) (broker.Subscription, error) {
 	status := &SegmentStatus{Space: space}
 	route := status.GetRoute()
-	return d.bus.Subscribe(route, func(r broker.Routeable) {
+	return d.bus.Subscribe(ctx, route, func(r broker.Routeable) {
 		if status, ok := r.(*SegmentStatus); ok {
 			handler(status)
 		}
 	})
 }
 
-func (d *DefaultClient) SubcribeToSegment(space, segment string, handler func(*SegmentStatus)) (broker.Subscription, error) {
+func (d *DefaultClient) SubcribeToSegment(ctx context.Context, space, segment string, handler func(*SegmentStatus)) (broker.Subscription, error) {
 	status := &SegmentStatus{Space: space, Segment: segment}
 	route := status.GetRoute()
-	return d.bus.Subscribe(route, func(r broker.Routeable) {
+	return d.bus.Subscribe(ctx, route, func(r broker.Routeable) {
 		if status, ok := r.(*SegmentStatus); ok {
 			handler(status)
 		}

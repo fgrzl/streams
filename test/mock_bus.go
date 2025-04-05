@@ -54,7 +54,7 @@ func (t *mockBus) Notify(_ context.Context, args broker.Routeable) error {
 }
 
 // Subscribe registers a new handler for a specific type of message.
-func (t *mockBus) Subscribe(route string, handler broker.SubscriptionHandler) (broker.Subscription, error) {
+func (t *mockBus) Subscribe(ctx context.Context, route string, handler broker.SubscriptionHandler) (broker.Subscription, error) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
@@ -99,7 +99,7 @@ func (t *mockBus) CallStream(_ context.Context, args broker.Routeable) (broker.B
 }
 
 // SubscribeToRequest implements server.Bus.
-func (t *mockBus) SubscribeToStream(route string, handler broker.StreamSubscriptionHandler) (broker.Subscription, error) {
+func (t *mockBus) SubscribeToStream(ctx context.Context, route string, handler broker.StreamSubscriptionHandler) (broker.Subscription, error) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 

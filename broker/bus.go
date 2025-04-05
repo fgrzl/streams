@@ -26,12 +26,12 @@ type Bus interface {
 
 type NotificationBus interface {
 	Notify(context.Context, Routeable) error
-	Subscribe(string, SubscriptionHandler) (Subscription, error)
+	Subscribe(context.Context, string, SubscriptionHandler) (Subscription, error)
 }
 
 type StreamBus interface {
 	CallStream(context.Context, Routeable) (BidiStream, error)
-	SubscribeToStream(string, StreamSubscriptionHandler) (Subscription, error)
+	SubscribeToStream(context.Context, string, StreamSubscriptionHandler) (Subscription, error)
 }
 
 type Subscription interface {

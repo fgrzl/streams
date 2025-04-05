@@ -181,7 +181,7 @@ func (d *DefualtSupervisor) waitForQuorum(ctx context.Context, messageID uuid.UU
 	ch := make(chan any)
 
 	replyRoute := server.GetReplyRoute(messageID)
-	sub, err := d.bus.Subscribe(replyRoute, func(msg broker.Routeable) { ch <- msg })
+	sub, err := d.bus.Subscribe(ctx, replyRoute, func(msg broker.Routeable) { ch <- msg })
 	if err != nil {
 		return fmt.Errorf("failed to subscribe: %w", err)
 	}

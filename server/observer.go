@@ -10,7 +10,7 @@ import (
 )
 
 func RegisterHandler[T broker.Routeable](o *DefaultObserver, arg T, handler func(msg T)) error {
-	sub, err := o.Bus.Subscribe(arg.GetRoute(), func(msg broker.Routeable) {
+	sub, err := o.Bus.Subscribe(o.Context, arg.GetRoute(), func(msg broker.Routeable) {
 		select {
 		case <-o.Context.Done():
 			// Context is done, don't send to the channel
@@ -35,7 +35,7 @@ func RegisterHandler[T broker.Routeable](o *DefaultObserver, arg T, handler func
 }
 
 func RegisterStreamHandler[T broker.Routeable](o *DefaultObserver, arg T, handler func(msg T, stream broker.BidiStream)) error {
-	sub, err := o.Bus.SubscribeToStream(arg.GetRoute(), func(msg broker.Routeable, stream broker.BidiStream) {
+	sub, err := o.Bus.SubscribeToStream(o.Context, arg.GetRoute(), func(msg broker.Routeable, stream broker.BidiStream) {
 		handler(msg.(T), stream)
 	})
 

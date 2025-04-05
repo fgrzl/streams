@@ -37,6 +37,10 @@ func NewNode(bus broker.Bus, options *TableProviderOptions) (*Node, error) {
 	}, nil
 }
 
+func (n *Node) GetBus() broker.Bus {
+	return n.Bus
+}
+
 func (n *Node) Close() error {
 	var err error
 	n.disposed.Do(func() {

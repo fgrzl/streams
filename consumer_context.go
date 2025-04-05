@@ -165,14 +165,14 @@ func (c *consumerContext) Cancel() {
 
 func (c *consumerContext) setupSpaceTickler(spaces ...string) *tickle.Subscription {
 	for _, space := range spaces {
-		c.client.SubcribeToSpace(space, c.tickle)
+		c.client.SubcribeToSpace(c, space, c.tickle)
 	}
 	sub := c.tickler.Subscribe(c, spaces...)
 	return sub
 }
 
 func (c *consumerContext) setupSegmentTickler(space, segment string) *tickle.Subscription {
-	c.client.SubcribeToSegment(space, segment, c.tickle)
+	c.client.SubcribeToSegment(c, space, segment, c.tickle)
 	token := space + "." + segment
 	sub := c.tickler.Subscribe(c, token)
 	return sub

@@ -18,7 +18,7 @@ var (
 	_ broker.Subscription = (*sub)(nil)
 )
 
-func NewHTTP2StreamBus(client *http.Client) broker.StreamBus {
+func NewHTTP2StreamBus(client *http.Client) *HTTP2StreamBus {
 	return &HTTP2StreamBus{
 		client: client,
 	}
@@ -65,7 +65,7 @@ func (b *HTTP2StreamBus) CallStream(ctx context.Context, args broker.Routeable) 
 	return stream, nil
 }
 
-func (b *HTTP2StreamBus) SubscribeToStream(route string, handler broker.StreamSubscriptionHandler) (broker.Subscription, error) {
+func (b *HTTP2StreamBus) SubscribeToStream(ctx context.Context, route string, handler broker.StreamSubscriptionHandler) (broker.Subscription, error) {
 	_, ok := b.streamHandlers.LoadOrStore(route, handler)
 	if !ok {
 		return nil, broker.ErrNoResponders
