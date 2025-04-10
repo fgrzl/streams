@@ -47,6 +47,9 @@ type Client interface {
 	// Produce stream entries.
 	Produce(ctx context.Context, space, segment string, entries enumerators.Enumerator[*Record]) enumerators.Enumerator[*SegmentStatus]
 
+	// Publish one off events.
+	Publish(ctx context.Context, space, segment string, payload []byte, metadata map[string]string) error
+
 	// Subscribe to a space.
 	SubcribeToSpace(ctx context.Context, space string, handler func(*SegmentStatus)) (broker.Subscription, error)
 
@@ -141,6 +144,30 @@ func (d *DefaultClient) Produce(ctx context.Context, space, segment string, entr
 	}(stream, entries)
 
 	return broker.NewStreamEnumerator[*SegmentStatus](stream)
+}
+
+func (d *DefaultClient) Publish(ctx context.Context, space, segment string, payload []byte, metadata map[string]string) error {
+	peek, err := d.Peek(ctx, space, segment)
+	if err != nil {
+		return err
+	}
+
+	stream, err := d.bus.CallStream(ctx, &Produce{Space: space, Segment: segment})
+	if err != nil {
+		return err
+	}
+
+	record := &Record{
+		Sequence: peek.Sequence + 1,
+		Payload:  payload,
+		Metadata: metadata,
+	}
+	defer stream.CloseSend(nil)
+	if err := stream.Encode(record); err != nil {
+		stream.CloseSend(err)
+	}
+	enumerator := broker.NewStreamEnumerator[*SegmentStatus](stream)
+	return enumerators.Consume(enumerator)
 }
 
 func (d *DefaultClient) Consume(ctx context.Context, args *Consume) enumerators.Enumerator[*Entry] {
