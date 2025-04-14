@@ -162,12 +162,19 @@ func (d *DefaultClient) Publish(ctx context.Context, space, segment string, payl
 		Payload:  payload,
 		Metadata: metadata,
 	}
-	defer stream.CloseSend(nil)
+
 	if err := stream.Encode(record); err != nil {
 		stream.CloseSend(err)
 	}
+	stream.CloseSend(nil)
 	enumerator := broker.NewStreamEnumerator[*SegmentStatus](stream)
-	return enumerators.Consume(enumerator)
+
+	if err := enumerators.Consume(enumerator); err != nil {
+		stream.Close(err)
+		return err
+	}
+	stream.Close(nil)
+	return nil
 }
 
 func (d *DefaultClient) Consume(ctx context.Context, args *Consume) enumerators.Enumerator[*Entry] {

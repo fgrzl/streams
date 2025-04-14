@@ -309,12 +309,12 @@ func (s *DefaultService) processEntryChunks(ctx context.Context, args *Produce, 
 	lastSequence := lastEntry.Sequence
 	lastTransactionNumber := lastEntry.TRX.Number
 	return enumerators.Map(chunks, func(chunk enumerators.Enumerator[*Record]) (*SegmentStatus, error) {
-		return s.processChunk(ctx, args.Space, args.Segment, chunk, lastSequence, lastTransactionNumber)
+		return s.processChunk(ctx, args.Space, args.Segment, chunk, &lastSequence, &lastTransactionNumber)
 	})
 }
 
-func (s *DefaultService) processChunk(ctx context.Context, space, segment string, chunk enumerators.Enumerator[*Record], lastSequence, lastTransactionNumber uint64) (*SegmentStatus, error) {
-	trx := s.createTransaction(lastTransactionNumber + 1)
+func (s *DefaultService) processChunk(ctx context.Context, space, segment string, chunk enumerators.Enumerator[*Record], lastSequence, lastTransactionNumber *uint64) (*SegmentStatus, error) {
+	trx := s.createTransaction(*lastTransactionNumber + 1)
 	entries, err := s.createEntries(chunk, space, segment, trx, lastSequence)
 	if err != nil {
 		return nil, err
@@ -328,7 +328,7 @@ func (s *DefaultService) processChunk(ctx context.Context, space, segment string
 		return nil, err
 	}
 
-	lastTransactionNumber++
+	*lastTransactionNumber += 1
 	status := s.createSegmentStatus(space, segment, entries)
 	s.notifySupervisor(ctx, status)
 	return status, nil
@@ -342,13 +342,13 @@ func (s *DefaultService) createTransaction(number uint64) TRX {
 	}
 }
 
-func (s *DefaultService) createEntries(chunk enumerators.Enumerator[*Record], space, segment string, trx TRX, lastSequence uint64) ([]*Entry, error) {
+func (s *DefaultService) createEntries(chunk enumerators.Enumerator[*Record], space, segment string, trx TRX, lastSequence *uint64) ([]*Entry, error) {
 	timestamp := timestamp.GetTimestamp()
 	enumerator := enumerators.Map(chunk, func(record *Record) (*Entry, error) {
-		lastSequence++
-		if record.Sequence != lastSequence {
+		if record.Sequence != *lastSequence+1 {
 			return nil, server.ERR_SEQUENCE_MISMATCH
 		}
+		*lastSequence = record.Sequence
 		return &Entry{
 			TRX:       trx,
 			Space:     space,
