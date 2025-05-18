@@ -30,8 +30,14 @@ type NotificationBus interface {
 }
 
 type StreamBus interface {
-	CallStream(context.Context, Routeable) (BidiStream, error)
-	SubscribeToStream(context.Context, string, StreamSubscriptionHandler) (Subscription, error)
+	// CallStream initiates a bidirectional stream to a remote handler.
+	// It returns a BidiStream that allows peeking, producing, and consuming messages.
+	// This is distinct from domain-level data streams.
+	CallStream(ctx context.Context, msg Routeable) (BidiStream, error)
+
+	// SubscribeToStream registers a handler to serve inbound bidirectional streams.
+	// The provided handler will be invoked for each incoming stream request matching the given route key.
+	SubscribeToStream(ctx context.Context, route string, handler StreamSubscriptionHandler) (Subscription, error)
 }
 
 type Subscription interface {
