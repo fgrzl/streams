@@ -9,7 +9,7 @@ require (
 	github.com/cockroachdb/pebble/v2 v2.0.3
 	github.com/fgrzl/enumerators v0.0.0-20250410102914-6a54f0117505
 	github.com/fgrzl/json v0.0.0-20250514205914-77c559a7b06d
-	github.com/fgrzl/lexkey v0.0.0-20250404134045-06756616f02b
+	github.com/fgrzl/lexkey v0.1.0-alpha.14
 	github.com/fgrzl/logging v0.0.0-20250316183444-a0ee4e3ff2b2
 	github.com/fgrzl/tickle v0.0.0-20250326142409-26a8ec1d1519
 	github.com/fgrzl/timestamp v0.0.0-20250225130908-89948d7bd71d
