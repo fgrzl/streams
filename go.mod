@@ -12,7 +12,7 @@ require (
 	github.com/fgrzl/lexkey v0.0.0-20250404134045-06756616f02b
 	github.com/fgrzl/logging v0.0.0-20250316183444-a0ee4e3ff2b2
 	github.com/fgrzl/tickle v0.0.0-20250326142409-26a8ec1d1519
-	github.com/fgrzl/timestamp v0.0.0-20250225130908-89948d7bd71d
+	github.com/fgrzl/timestamp v0.1.0-alpha.7
 	github.com/golang/snappy v1.0.0
 	github.com/google/uuid v1.6.0
 	github.com/stretchr/testify v1.10.0
