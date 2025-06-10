@@ -81,8 +81,8 @@ type TableProviderOptions struct {
 }
 
 type AzureService struct {
-	client    *aztables.Client
-	bus       broker.Bus
+	client *aztables.Client
+	//bus       broker.Bus
 	cache     *server.ExpiringCache
 	wg        sync.WaitGroup
 	closeOnce sync.Once

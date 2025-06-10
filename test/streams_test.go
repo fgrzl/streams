@@ -6,7 +6,7 @@ import (
 
 	"github.com/fgrzl/enumerators"
 	"github.com/fgrzl/lexkey"
-	"github.com/fgrzl/streams"
+	streams "github.com/fgrzl/streamkit"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
