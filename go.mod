@@ -9,7 +9,7 @@ require (
 	github.com/cockroachdb/pebble/v2 v2.0.5
 	github.com/fgrzl/enumerators v0.1.0-alpha.20
 	github.com/fgrzl/json v0.0.1-alpha.29
-	github.com/fgrzl/lexkey v0.1.0-alpha.15
+	github.com/fgrzl/lexkey v0.1.0-alpha.23
 	github.com/fgrzl/logging v0.0.0-20250316183444-a0ee4e3ff2b2
 	github.com/fgrzl/streamkit v0.0.1-alpha.27
 	github.com/fgrzl/tickle v0.0.0-20250326142409-26a8ec1d1519
